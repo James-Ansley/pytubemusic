@@ -1,4 +1,3 @@
-import os
 from itertools import pairwise
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -49,10 +48,7 @@ class Audio:
         return new_tracks
 
     @log_call(on_enter="Writing {0.metadata[name]}")
-    def export(self, out: Path = None):
-        if out is None:
-            out = Path(self.metadata["album"])
-        os.makedirs(out, exist_ok=True)
+    def export(self, out: Path):
         track_file = out / (self.metadata["name"] + ".mp3")
         with open(track_file, "wb") as f:
             self._audio_data.export(

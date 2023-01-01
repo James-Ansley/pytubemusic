@@ -1,7 +1,7 @@
 import functools
 import logging
 
-logger = logging.getLogger("yourtubemusic")
+logger = logging.getLogger("pytubemusic")
 
 
 def log_call(
