@@ -1,12 +1,12 @@
 import os
 from collections.abc import Mapping
+from datetime import datetime
 from datetime import timedelta
 from itertools import pairwise
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
 from typing import Self
 
-from dateutil.parser import parse
 from pydub import AudioSegment
 from pytube import Playlist, YouTube
 
@@ -129,7 +129,10 @@ class Audio:
 def to_delta(timestamp):
     template = "00:00:00"
     timestamp = template[:-len(timestamp)] + timestamp
-    return (parse(timestamp) - parse(template)).seconds
+    return (
+            datetime.strptime(timestamp, "%H:%M:%S")
+            - datetime.strptime(template, "%H:%M:%S")
+    ).seconds
 
 
 def to_timestamp(seconds):
