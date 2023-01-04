@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pytubemusic"
 version = "0.0.1a1"
 description = 'A cli that may or may not download albums from a certain website'
-repository = "https://github.com/James-Ansley/pytubemusic"
+
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
@@ -17,6 +17,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dynamic = ["dependencies"]
+
+[project.urls]
+repository = "https://github.com/James-Ansley/pytubemusic"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
