@@ -86,7 +86,7 @@ class Track:
             }
 
     @log_call(
-        on_enter="Exporting track {0.metadata[track]}: {0.metadata[title]}")
+        on_enter="Exporting track: {0.metadata[title]}")
     def export(self, root: PurePath = PurePath("."), metadata: Mapping = None):
         metadata = {} if metadata is None else metadata
         root = root / (self.metadata["title"].replace("/", "\u2044") + ".mp3")
