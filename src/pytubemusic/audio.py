@@ -1,10 +1,10 @@
+import io
 import os
 from collections.abc import Mapping
 from datetime import datetime
 from datetime import timedelta
 from itertools import pairwise
 from pathlib import PurePath
-from tempfile import NamedTemporaryFile
 from typing import Self
 
 from pydub import AudioSegment
@@ -85,8 +85,7 @@ class Track:
                 "metadata": {**t1.get("metadata", {}), "track": i},
             }
 
-    @log_call(
-        on_enter="Exporting track: {0.metadata[title]}")
+    @log_call(on_enter="Exporting track: {0.metadata[title]}")
     def export(self, root: PurePath = PurePath("."), metadata: Mapping = None):
         metadata = {} if metadata is None else metadata
         root = root / (self.metadata["title"].replace("/", "\u2044") + ".mp3")
@@ -101,10 +100,11 @@ class Audio:
 
     @classmethod
     def from_stream(cls, url: str) -> Self:
-        audio_file = NamedTemporaryFile("wb")
+        buffer = io.BytesIO()
         raw_audio = YouTube(url).streams.get_audio_only()
-        raw_audio.stream_to_buffer(audio_file)
-        audio_data = AudioSegment.from_file(audio_file.name)
+        raw_audio.stream_to_buffer(buffer)
+        buffer.seek(0)
+        audio_data = AudioSegment.from_file(buffer)
         return cls(audio_data, raw_audio.bitrate)
 
     def snip(self, start: int = None, end: int = None) -> Self:
