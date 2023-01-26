@@ -20,7 +20,11 @@ logger.addHandler(logging.StreamHandler())
     help="Gets album tracks as individual files "
          "from the video associated with the album_data file",
 )
-@log_call(on_enter="Building album from '{album_data}'", on_exit="DONE")
+@log_call(
+    on_enter="Building album from '{album_data}'",
+    on_exit="DONE",
+    on_error="\x1b[31mProcessing Album Failed.\x1b[0m",
+)
 def make_album(
         album_data: Path = Argument(..., help="The album data"),
         out: Path = Option(
@@ -32,7 +36,7 @@ def make_album(
 ):
     with open(album_data, "rb") as f:
         album_data = tomllib.load(f)
-    album = Album.from_url(**album_data)
+    album = Album.from_video(**album_data)
     album.export(out)
 
 
@@ -41,7 +45,11 @@ def make_album(
     help="Gets a single audio file from the "
          "video associated with the track_data file",
 )
-@log_call(on_enter="Building album from '{track_data}'", on_exit="DONE")
+@log_call(
+    on_enter="Building track from '{track_data}'",
+    on_exit="DONE",
+    on_error="\x1b[31mProcessing Track Failed.\x1b[0m",
+)
 def make_track(
         track_data: Path = Argument(..., help="The track data"),
         out: Path = Option(
@@ -53,7 +61,7 @@ def make_track(
 ):
     with open(track_data, "rb") as f:
         track_data = tomllib.load(f)
-    track = Track.from_url(**track_data)
+    track = Track.from_video(**track_data)
     track.export(out)
 
 
@@ -61,7 +69,11 @@ def make_track(
     "playlist",
     help="Gets tracks from the videos associated with the playlist",
 )
-@log_call(on_enter="Building album from '{playlist_data}'", on_exit="DONE")
+@log_call(
+    on_enter="Building album from '{playlist_data}'",
+    on_exit="DONE",
+    on_error="\x1b[31mProcessing Playlist Failed.\x1b[0m",
+)
 def make_playlist_album(
         playlist_data: Path = Argument(..., help="The track data"),
         out: Path = Option(

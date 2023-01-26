@@ -24,6 +24,9 @@ PyTubeMusic can download tracks in three formats:
 Each type of track needs a different configuration file that includes metadata.
 These are described below.
 
+Note: the term "timestamp" refers to a string of the form: "H?:M:S" – for
+example: "23:55", "1:12:00", "5:03"
+
 ### Tracks
 
 Track toml files have the following format:
@@ -31,11 +34,11 @@ Track toml files have the following format:
 ```toml
 url = "..."  # URL to video
 
-start = ...  # start time in seconds (optional)
-end = ...  # end time in seconds (optional)
+start = "..."  # start timestamp (optional)
+end = "..."  # end timestamp (optional)
 
 [metadata]
-track = "..."  # Track Name (required)
+title = "..."  # Track Name (required)
 # Any other FFMPEG MP3 metadata tags
 ```
 
@@ -50,9 +53,10 @@ url = "..."  # URL here
 # If an end time is not used the next track start time or the end of the video 
 #     will be used
 # The metadata "title" tag is required
+# Track numbers are automatically added
 tracks = [
-    { start = "00:00", metadata = { title = "..." } },
-    { start = "24:00", end = "...", metadata = { title = "..." } },
+    { start = "...", metadata = { title = "..." } },
+    { start = "...", end = "...", metadata = { title = "..." } },
 ]
 
 [metadata]
