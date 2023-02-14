@@ -2,13 +2,12 @@ import logging
 import tomllib
 from pathlib import Path
 
-import typer
-from typer import Argument, Option
+from typer import Argument, Option, Typer
 
-from .audio import Album, Track
-from .logutils import log_call
+from .logutils import log_block, log_call
+from .track import Track
 
-app = typer.Typer(add_completion=False)
+app = Typer(add_completion=False)
 
 logger = logging.getLogger("pytubemusic")
 logger.setLevel(logging.INFO)
@@ -36,8 +35,10 @@ def make_album(
 ):
     with open(album_data, "rb") as f:
         album_data = tomllib.load(f)
-    album = Album.from_video(**album_data)
-    album.export(out)
+    tracks = list(Track.from_album(**album_data))
+    with log_block(on_enter="Exporting Tracks"):
+        for track in tracks:
+            track.export(out / track.album)
 
 
 @app.command(
@@ -85,8 +86,10 @@ def make_playlist_album(
 ):
     with open(playlist_data, "rb") as f:
         playlist_data = tomllib.load(f)
-    playlist = Album.from_playlist(**playlist_data)
-    playlist.export(out)
+    tracks = list(Track.from_playlist(**playlist_data))
+    with log_block(on_enter="Exporting tracks"):
+        for track in tracks:
+            track.export(out / track.album)
 
 
 app()
