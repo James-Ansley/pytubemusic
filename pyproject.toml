@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubemusic"
-version = "0.0.1a3"
+version = "0.0.1a4"
 description = 'A cli that may or may not download albums from a certain website'
 
 readme = "README.md"

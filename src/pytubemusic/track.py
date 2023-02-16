@@ -139,7 +139,7 @@ class Track:
             cls,
             url: str,
             *,
-            track_data: Iterable[Mapping[str, Any]],
+            track_data: Iterable[Mapping[str, Any]] = None,
             metadata: Mapping[str, str],
             cover_url: str = None,
     ) -> Iterable[Self]:

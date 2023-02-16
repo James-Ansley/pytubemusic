@@ -36,7 +36,7 @@ Track toml files have the following format:
 ```toml
 url = "..."  # URL to video
 
-cover = "..."  # Track cover jpg URL (optional – uses thumbnail by default)
+cover_url = "..."  # Track cover jpg URL (optional – uses thumbnail by default)
 
 start = "..."  # start timestamp (optional)
 end = "..."  # end timestamp (optional)
@@ -64,7 +64,7 @@ Albums require a `track_data` list that defines track-specific data.
 # album_data.toml
 url = "..."  # URL here
 
-cover = "..."  # Track cover jpg URL (optional – uses thumbnail by default)
+cover_url = "..."  # Track cover jpg URL (optional – uses thumbnail by default)
 
 track_data = [
     { start = "...", metadata = { title = "..." } },
@@ -87,12 +87,10 @@ provided, the title of each video will be used for each track title.
 ```toml
 url = "..."  # URL to playlist
 
-cover = "..."  # Track cover jpg URL (optional – uses thumbnails by default)
+cover_url = "..."  # Track cover jpg URL (optional – uses thumbnails by default)
 
 # Optional track data
-track_data = [
-    ...
-]
+track_data = []
 
 [metadata]
 album = "..."  # Album name (required)
