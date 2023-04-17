@@ -1,11 +1,12 @@
 import logging
-import tomllib
 from pathlib import Path
 
+import cowexcept
 from typer import Argument, Option, Typer
 
-from .logutils import log_block, log_call
+from .logutils import log_block, log_call, open_or_panic
 from .track import Track
+from .validation import loadf_or_panic
 
 app = Typer(add_completion=False)
 
@@ -21,7 +22,7 @@ logger.addHandler(logging.StreamHandler())
 )
 @log_call(
     on_enter="Building album from '{album_data}'",
-    on_exit="DONE",
+    on_exit="\x1b[32mDONE!\x1b[0m",
     on_error="\x1b[31mProcessing Album Failed.\x1b[0m",
 )
 def make_album(
@@ -33,8 +34,11 @@ def make_album(
                  "Defaults to the album name",
         )
 ):
-    with open(album_data, "rb") as f:
-        album_data = tomllib.load(f)
+    prefix = "Processing Album Failed.\n"
+    err_msg = f"{prefix}Cannot open `{album_data}`"
+    with open_or_panic(album_data, "rb", err_msg) as f:
+        err_msg = f"{prefix}Invalid Album TOML format for `{album_data}`."
+        album_data = loadf_or_panic(f, "album", err_msg)
     tracks = list(Track.from_album(**album_data))
     with log_block(on_enter="Exporting Tracks"):
         for track in tracks:
@@ -48,7 +52,7 @@ def make_album(
 )
 @log_call(
     on_enter="Building track from '{track_data}'",
-    on_exit="DONE",
+    on_exit="\x1b[32mDONE!\x1b[0m",
     on_error="\x1b[31mProcessing Track Failed.\x1b[0m",
 )
 def make_track(
@@ -60,8 +64,11 @@ def make_track(
                  "Defaults to the cwd",
         )
 ):
-    with open(track_data, "rb") as f:
-        track_data = tomllib.load(f)
+    prefix = "Processing Track Failed.\n"
+    err_msg = f"{prefix}Cannot open `{track_data}`"
+    with open_or_panic(track_data, "rb", err_msg) as f:
+        err_msg = f"{prefix}Invalid Track TOML format for `{track_data}`."
+        track_data = loadf_or_panic(f, "track", err_msg)
     track = Track.from_video(**track_data)
     track.export(out)
 
@@ -72,7 +79,7 @@ def make_track(
 )
 @log_call(
     on_enter="Building album from '{playlist_data}'",
-    on_exit="DONE",
+    on_exit="\x1b[32mDONE!\x1b[0m",
     on_error="\x1b[31mProcessing Playlist Failed.\x1b[0m",
 )
 def make_playlist_album(
@@ -84,12 +91,19 @@ def make_playlist_album(
                  "Defaults to the cwd",
         )
 ):
-    with open(playlist_data, "rb") as f:
-        playlist_data = tomllib.load(f)
+    err_msg = f"Processing Playlist Failed.\nCannot open `{playlist_data}`"
+    with open_or_panic(playlist_data, "rb", err_msg) as f:
+        err_msg = f"Processing Playlist Failed.\nInvalid Playlist TOML format."
+        playlist_data = loadf_or_panic(f, "playlist", err_msg)
     tracks = list(Track.from_playlist(**playlist_data))
     with log_block(on_enter="Exporting tracks"):
         for track in tracks:
             track.export(out / track.album)
+
+
+@app.callback(invoke_without_command=True)
+def main():
+    cowexcept.activate()
 
 
 app()

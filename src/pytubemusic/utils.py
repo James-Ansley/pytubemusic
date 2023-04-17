@@ -4,9 +4,14 @@ from datetime import datetime, timedelta
 from itertools import chain, pairwise
 from pathlib import PurePath
 from tempfile import NamedTemporaryFile
-from typing import Any, Self
+from typing import Any
 
 from pytube import YouTube
+
+__all__ = [
+    "to_delta", "to_timestamp", "to_microseconds", "pathify", "make_track_data",
+    "set_ends", "merge_metadata", "get_cover", "thumbnail",
+]
 
 STR_MAP = Mapping[str, Any]
 TRACK_DATA = Iterable[STR_MAP]
@@ -47,16 +52,6 @@ def pathify(root: PurePath, title: str, ext=".mp3") -> PurePath:
     with the given extension
     """
     return root / (title.replace("/", "\u2044") + ext)
-
-
-class Pipe:
-    def __init__(self, data):
-        """Allows for piped operations to the data via method chaining"""
-        self.result = data
-
-    def then(self, func, *args, **kwargs) -> Self:
-        self.result = func(self.result, *args, **kwargs)
-        return self
 
 
 def make_track_data(

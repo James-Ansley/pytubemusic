@@ -6,12 +6,14 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Self
 
-from pytube import Playlist
+import backoff
+from pipe_utils import Pipe
+from pytube import Playlist, YouTube
+from pytube.exceptions import PytubeError
 
 from pytubemusic.audio import Audio
 from pytubemusic.logutils import log_call
-from pytubemusic.utils import (Pipe, get_cover, merge_metadata, pathify,
-                               set_ends, thumbnail, to_delta)
+from pytubemusic.utils import *
 
 __all__ = ["Track"]
 
@@ -86,19 +88,17 @@ class Track:
         :return: an iterator of Track objects
         """
         audio = Audio.from_url(url)
-        cover = thumbnail(url) if cover_url is None else get_cover(cover_url)
         track_data = (
-            Pipe(track_data)
-            .then(set_ends, audio.duration)
-            .then(merge_metadata, metadata)
-            .result
-        )
+                Pipe(track_data)
+                | (set_ends, audio.duration)
+                | (merge_metadata, metadata)
+        ).get()
         for track in track_data:
             yield cls(
                 audio,
-                cover,
-                to_delta(track.get("start")),
-                to_delta(track.get("end")),
+                thumbnail(url) if cover_url is None else get_cover(cover_url),
+                to_delta(track["start"]),
+                to_delta(track["end"]),
                 track["metadata"],
             )
 
@@ -108,9 +108,9 @@ class Track:
             cls,
             url: str,
             *,
+            metadata: Mapping[str, str],
             start: str = "00:00",
             end: str = None,
-            metadata: Mapping[str, str],
             cover_url: str = None,
     ) -> Self:
         """
@@ -126,21 +126,22 @@ class Track:
         :return: A new Track
         """
         audio = Audio.from_url(url)
-        end = to_delta(end) if end is not None else audio.duration
-        if cover_url is None:
-            cover_url = thumbnail(url)
-        else:
-            cover_url = get_cover(cover_url)
-        return cls(audio, cover_url, to_delta(start), end, metadata)
+        return cls(
+            audio,
+            thumbnail(url) if cover_url is None else get_cover(cover_url),
+            to_delta(start),
+            to_delta(end) if end is not None else audio.duration,
+            metadata,
+        )
 
     @classmethod
-    @log_call(on_enter="Downloading '{metadata[album]}' from {url}")
+    @log_call(on_enter="Downloading '{metadata[album]}' from playlist {url}")
     def from_playlist(
             cls,
             url: str,
             *,
-            track_data: Iterable[Mapping[str, Any]] = None,
             metadata: Mapping[str, str],
+            track_data: Iterable[Mapping[str, Any]] = None,
             cover_url: str = None,
     ) -> Iterable[Self]:
         """
@@ -154,19 +155,24 @@ class Track:
         :return: an iterator of Track objects
         """
         playlist = Playlist(url)
-        if track_data is None:
-            track_data = [{} for _ in range(len(playlist))]
+        track_data = [{}] * len(playlist) if track_data is None else track_data
         video_data = zip(playlist.videos, track_data)
         for i, (video, data) in enumerate(video_data, start=1):
-            track_metadata = data.pop("metadata") if "metadata" in data else {}
             yield cls.from_video(
                 video.watch_url,
+                cover_url=cover_url,
                 metadata={
                     **metadata,
                     "track": i,
-                    "title": video.title,
-                    **track_metadata,
+                    # Hack to avoid issues with titles not being
+                    # found on playlist videos
+                    "title": get_title(video.watch_url),
+                    **data.get("metadata", {}),
                 },
-                cover_url=cover_url,
-                **data,
+                **{k: v for k, v in data.items() if k != "metadata"},
             )
+
+
+@backoff.on_exception(backoff.expo, PytubeError, max_tries=5)
+def get_title(url):
+    return YouTube(url).title

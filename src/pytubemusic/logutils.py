@@ -2,12 +2,43 @@ import contextlib
 import functools
 import inspect
 import logging
+import sys
+from collections.abc import Iterable
 from textwrap import indent
+from typing import Type
+
+import cowsay
 
 logger = logging.getLogger("pytubemusic")
 
 INDENT_WIDTH = 2
 _INDENT = 0
+
+EType = Type[Exception] | tuple[Type[Exception], ...]
+
+
+class PanicOn:
+    def __init__(self, catch: EType, msg: str, handler=str):
+        self.catch = catch
+        self.msg = msg
+        self.handler = handler
+
+    def __enter__(self):
+        ...
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if (
+                isinstance(exc_val, self.catch)
+                or (isinstance(self.catch, Iterable)
+                    and any(isinstance(exc_val, e) for e in self.catch))
+        ):
+            message = cowsay.cowsay(
+                self.msg, cow=cowsay.get_random_cow(), wrap_text=False
+            )
+            err = self.handler(exc_val)
+            message = f"\x1b[31m{message}\n\n{err}\x1b[0m"
+            logger.log(logging.ERROR, message)
+            sys.exit(1)
 
 
 @contextlib.contextmanager
@@ -45,6 +76,7 @@ def log_call(
     Logs calls – on a "global stack" where each nested call is indented
     by a global INDENT_WIDTH.
     """
+
     def decorator(func):
         arg_spec = inspect.getfullargspec(func)
         params = arg_spec.args
@@ -79,3 +111,9 @@ def log_message(msg, fmt_args, fmt_kwargs, level):
     if msg is not None:
         msg = indent(msg, " " * _INDENT).format(*fmt_args, **fmt_kwargs)
         logger.log(level, msg)
+
+
+@contextlib.contextmanager
+def open_or_panic(file_name, mode, msg):
+    with (PanicOn(OSError, msg), open(file_name, mode) as f):
+        yield f

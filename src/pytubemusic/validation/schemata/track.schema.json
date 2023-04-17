@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "category.schema.json",
+  "title": "PyTubeMusic Track",
+  "description": "PyTubeMusic Track Data",
+  "type": "object",
+  "required": [
+    "url",
+    "metadata"
+  ],
+  "properties": {
+    "url": {
+      "type": "string",
+      "pattern": "(?:v=|\/)([0-9A-Za-z_-]{11}).*",
+      "description": "URL to video"
+    },
+    "cover_url": {
+      "type": "string",
+      "description": "URL to cover image jpeg – optional (thumbnail used by default)"
+    },
+    "start": {
+      "type": "string",
+      "pattern": "^(\\d?\\d(:\\d\\d){1,2})(\\.\\d+)?$",
+      "description": "Start timestamp of the form 'H?:M:S.f?' – defaults to 00:00"
+    },
+    "end": {
+      "type": "string",
+      "pattern": "^(\\d?\\d(:\\d\\d){1,2})(\\.\\d+)?$",
+      "description": "End timestamp of the form 'H?:M:S.f?' – defaults to video end"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["title"],
+      "description": "FFMPEG MP3 Metadata fields – unchecked by schema except title",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Track title"
+        }
+      }
+    }
+  }
+}

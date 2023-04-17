@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from datetime import timedelta
 from typing import BinaryIO, Self
 
+import backoff
 from pydub import AudioSegment
 from pytube import YouTube
 
@@ -46,6 +47,7 @@ class Audio:
         )
 
     @classmethod
+    @backoff.on_exception(backoff.expo, KeyError, max_tries=5)
     def from_url(cls, url: str) -> Self:
         """
         Downloads audio from the video associated with the URL

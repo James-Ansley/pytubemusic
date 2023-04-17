@@ -2,9 +2,6 @@
 
 A cli that may or may not download albums from a certain website.
 
-> PyTubeMusic is in alpha. Features are limited and significant API changes are
-> expected
-
 ## Install
 
 ```
