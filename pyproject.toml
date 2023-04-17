@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubemusic"
-version = "0.1.0"
+version = "0.1.1"
 description = 'A cli that may or may not download albums from a certain website'
 
 readme = "README.md"
@@ -29,3 +29,9 @@ where = ["src"]
 
 [project.scripts]
 pytubemusic = "pytubemusic:__main__"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.xml", "*.json"]
