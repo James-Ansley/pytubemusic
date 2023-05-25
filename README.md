@@ -10,6 +10,19 @@ pip install pytubemusic
 
 **Requires [ffmpeg](https://ffmpeg.org/) to be installed on your machine.**
 
+### Installation Note
+
+PyTubeMusic uses the [PyTube](https://github.com/pytube/pytube) library. This
+can occasionally break. However, patches are usually quickly released as new
+versions or as pull requests. Try upgrading to the latest version of PyTube if
+downloading fails.
+
+> Note, to pip install from a pull request do:
+> ```text
+>  pip install git+https://github.com/pytube/pytube.git@refs/pull/<PR_NUM>/head
+> ```
+> Where `<PR_NUM>` is the number of the pull request.
+
 ## Usage
 
 PyTubeMusic can download tracks in three formats:

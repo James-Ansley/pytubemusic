@@ -6,10 +6,8 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Self
 
-import backoff
 from pipe_utils import Pipe
-from pytube import Playlist, YouTube
-from pytube.exceptions import PytubeError
+from pytube import Playlist
 
 from pytubemusic.audio import Audio
 from pytubemusic.logutils import log_call
@@ -164,15 +162,8 @@ class Track:
                 metadata={
                     **metadata,
                     "track": i,
-                    # Hack to avoid issues with titles not being
-                    # found on playlist videos
-                    "title": get_title(video.watch_url),
+                    "title": video.title,
                     **data.get("metadata", {}),
                 },
                 **{k: v for k, v in data.items() if k != "metadata"},
             )
-
-
-@backoff.on_exception(backoff.expo, PytubeError, max_tries=5)
-def get_title(url):
-    return YouTube(url).title
