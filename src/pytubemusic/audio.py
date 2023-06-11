@@ -1,11 +1,12 @@
 import io
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from datetime import timedelta
 from typing import BinaryIO, Self
 
 import backoff
 from pydub import AudioSegment
 from pytube import YouTube
+from pytube.exceptions import PytubeError
 
 from pytubemusic.utils import to_microseconds
 
@@ -47,7 +48,7 @@ class Audio:
         )
 
     @classmethod
-    @backoff.on_exception(backoff.expo, KeyError, max_tries=5)
+    @backoff.on_exception(backoff.expo, (PytubeError, KeyError), max_tries=5)
     def from_url(cls, url: str) -> Self:
         """
         Downloads audio from the video associated with the URL
@@ -61,3 +62,13 @@ class Audio:
         buffer.seek(0)
         audio_data = AudioSegment.from_file(buffer)
         return cls(audio_data, raw_audio.bitrate)
+
+    @classmethod
+    def join(cls, tracks: Iterable["Audio"]) -> Self:
+        tracks = iter(tracks)
+        first = next(tracks)
+        bitrate = first.bitrate
+        audio = first._audio_data
+        for track in tracks:
+            audio = audio.append(track._audio_data)
+        return cls(audio, bitrate)

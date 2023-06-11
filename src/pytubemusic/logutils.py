@@ -117,3 +117,23 @@ def log_message(msg, fmt_args, fmt_kwargs, level):
 def open_or_panic(file_name, mode, msg):
     with (PanicOn(OSError, msg), open(file_name, mode) as f):
         yield f
+
+
+def log_iter(
+        level=logging.INFO,
+        on_each: str = None,
+        on_enter: str = None,
+        on_exit: str = None,
+        start: int = 0,
+):
+    def iterator(data: Iterable):
+        global _INDENT
+        _INDENT += INDENT_WIDTH
+        log_message(on_enter, [], {}, level)
+        for i, e in enumerate(data, start=start):
+            log_message(on_each, [e], {"i": i}, level)
+            yield e
+        log_message(on_exit, [], {}, level)
+        _INDENT -= INDENT_WIDTH
+
+    return iterator

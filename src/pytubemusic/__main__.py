@@ -101,6 +101,33 @@ def make_playlist_album(
             track.export(out / track.album)
 
 
+@app.command(
+    "multitrack",
+    help="Combines several tracks into one",
+)
+@log_call(
+    on_enter="Building track from '{multi_track_data}'",
+    on_exit="\x1b[32mDONE!\x1b[0m",
+    on_error="\x1b[31mProcessing track Failed.\x1b[0m",
+)
+def make_multi_track(
+        multi_track_data: Path = Argument(..., help="The track data"),
+        out: Path = Option(
+            Path("."),
+            "--out", "-o",
+            help="The directory album tracks will be written to. "
+                 "Defaults to the cwd",
+        )
+):
+    prefix = "Processing Multi Track Failed.\n"
+    err_msg = f"{prefix}Cannot open `{multi_track_data}`"
+    with open_or_panic(multi_track_data, "rb", err_msg) as f:
+        err_msg = f"{prefix}Invalid Track TOML format for `{multi_track_data}`."
+        track_data = loadf_or_panic(f, "multitrack", err_msg)
+    track = Track.from_multi_track(**track_data)
+    track.export(out)
+
+
 @app.callback(invoke_without_command=True)
 def main():
     cowexcept.activate()

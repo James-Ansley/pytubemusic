@@ -10,7 +10,7 @@ from pipe_utils import Pipe
 from pytube import Playlist
 
 from pytubemusic.audio import Audio
-from pytubemusic.logutils import log_call
+from pytubemusic.logutils import log_call, log_iter
 from pytubemusic.utils import *
 
 __all__ = ["Track"]
@@ -19,13 +19,13 @@ STR_MAP = Mapping[str, Any]
 TRACK_DATA = Iterable[STR_MAP]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Track:
     raw_audio: Audio
     cover: NamedTemporaryFile
-    start: timedelta
-    end: timedelta
     metadata: STR_MAP
+    start: timedelta = None
+    end: timedelta = None
 
     @property
     def audio(self) -> Audio:
@@ -94,10 +94,10 @@ class Track:
         for track in track_data:
             yield cls(
                 audio,
-                thumbnail(url) if cover_url is None else get_cover(cover_url),
+                get_cover(url, cover_url),
+                track["metadata"],
                 to_delta(track["start"]),
                 to_delta(track["end"]),
-                track["metadata"],
             )
 
     @classmethod
@@ -126,10 +126,10 @@ class Track:
         audio = Audio.from_url(url)
         return cls(
             audio,
-            thumbnail(url) if cover_url is None else get_cover(cover_url),
+            get_cover(url, cover_url),
+            metadata,
             to_delta(start),
             to_delta(end) if end is not None else audio.duration,
-            metadata,
         )
 
     @classmethod
@@ -167,3 +167,33 @@ class Track:
                 },
                 **{k: v for k, v in data.items() if k != "metadata"},
             )
+
+    @classmethod
+    @log_call(on_enter="Downloading multitrack '{metadata[title]}'")
+    def from_multi_track(
+            cls,
+            *,
+            track_data: Iterable[STR_MAP],
+            metadata: Mapping[str, str],
+            cover_url: str = None,
+    ) -> Self:
+        """
+        Factory that constructs a Track from a list of videos.
+
+        :param track_data: An iterable of mappings of the form:
+                ``{"url": ..., "start": ..., "end": ...}``
+        :param metadata: A String map of FFMPEG MP3 metadata tags
+        :param cover_url: The url to a JPG cover image
+        :return: A new Track
+        """
+        track_data = [
+            (t["url"], t.get("start"), t.get("end")) for t in track_data
+        ]
+        logged_iter = log_iter(
+            on_each="Downloading track part {i}: {0[0]}", start=1,
+        )
+        audio = Audio.join(
+            Audio.from_url(url).snip(start, end)
+            for url, start, end in logged_iter(track_data)
+        )
+        return cls(audio, get_cover(track_data[0][0], cover_url), metadata)

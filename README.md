@@ -10,7 +10,8 @@ pip install pytubemusic
 
 **Requires [ffmpeg](https://ffmpeg.org/) to be installed on your machine.**
 
-### Installation Note
+<details>
+<summary>Installation Note</summary>
 
 PyTubeMusic uses the [PyTube](https://github.com/pytube/pytube) library. This
 can occasionally break. However, patches are usually quickly released as new
@@ -23,6 +24,8 @@ downloading fails.
 > ```
 > Where `<PR_NUM>` is the number of the pull request.
 
+</details>
+
 ## Usage
 
 PyTubeMusic can download tracks in three formats:
@@ -30,6 +33,7 @@ PyTubeMusic can download tracks in three formats:
 - Tracks (Single files)
 - Albums (A single video that is split up into individual tracks on an album)
 - Playlists (Videos in a playlist that are downloaded as tracks on an album)
+- Multi Tracks (Several videos that get combined into a single track)
 
 Each type of track needs a different configuration file that includes metadata.
 These are described below.
@@ -107,11 +111,33 @@ album = "..."  # Album name (required)
 # Any other FFMPEG MP3 metadata tags
 ```
 
+### Multi Tracks
+
+> Several videos combined into a single track
+
+Effectively a list of URLs with metadata and an optional cover image. Note
+that `track_data` here has a different format to other cli commands:
+
+```toml
+cover_url = "..."  # Track cover jpg URL (optional – uses thumbnail of first video by default)
+
+# Required track data
+track_data = [
+    # Url to video and optional start and end timestamps
+    { url = "...", start = "...", end = "..." },
+    # ...
+]
+
+[metadata]
+title = "..."  # Track name (required)
+# Any other FFMPEG MP3 metadata tags
+```
+
 ### CLI
 
 A `pytubemusic` command will be exposed.
 
-This has three commands: `album`, `track`, `playlist`.
+This has four commands: `album`, `track`, `playlist`, `multitrack`.
 Each command corresponds to one of the file types mentioned above.
 
 The commands all take the path to a config TOML file and an optional `-o`

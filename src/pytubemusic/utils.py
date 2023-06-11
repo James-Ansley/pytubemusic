@@ -1,5 +1,5 @@
 import urllib.request
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
 from itertools import chain, pairwise
 from pathlib import PurePath
@@ -9,8 +9,8 @@ from typing import Any
 from pytube import YouTube
 
 __all__ = [
-    "to_delta", "to_timestamp", "to_microseconds", "pathify", "make_track_data",
-    "set_ends", "merge_metadata", "get_cover", "thumbnail",
+    "to_delta", "to_timestamp", "to_microseconds", "pathify",
+    "set_ends", "merge_metadata", "get_cover",
 ]
 
 STR_MAP = Mapping[str, Any]
@@ -54,27 +54,6 @@ def pathify(root: PurePath, title: str, ext=".mp3") -> PurePath:
     return root / (title.replace("/", "\u2044") + ext)
 
 
-def make_track_data(
-        track_data: list[Mapping],
-        end: timedelta,
-) -> Iterator[Mapping]:
-    """
-    Adds track number metadata to a list of track data and ensures tracks have
-    start and end timestamps
-
-    :param track_data: A list of string maps of incomplete track data
-    :param end: The length of the Album in seconds
-    :return: Yields string maps of track data
-    """
-    track_data = track_data + [{"start": to_timestamp(end)}]
-    for i, (t1, t2) in enumerate(pairwise(track_data), start=1):
-        yield t1 | {
-            "start": t1["start"],
-            "end": t1.get("end", t2["start"]),
-            "metadata": {"track": i} | t1.get("metadata", {}),
-        }
-
-
 def set_ends(track_data: TRACK_DATA, end: timedelta) -> TRACK_DATA:
     """
     Fills in missing "end" timestamps setting them to the start of the next
@@ -98,14 +77,12 @@ def merge_metadata(track_data: TRACK_DATA, metadata: STR_MAP) -> TRACK_DATA:
         yield {**data, "metadata": {**metadata, **data["metadata"]}}
 
 
-def thumbnail(url) -> NamedTemporaryFile:
-    """Returns a default cover – the video's thumbnail"""
-    thumbnail_url = YouTube(url).thumbnail_url
-    return get_cover(thumbnail_url)
-
-
-def get_cover(url) -> NamedTemporaryFile:
+def get_cover(video_url, cover_url) -> NamedTemporaryFile:
     """Downloads an image into a named temporary file to be used as cover art"""
+    if cover_url is None:
+        url = YouTube(video_url).thumbnail_url
+    else:
+        url = cover_url
     f = NamedTemporaryFile(suffix='.jpg')
     img = urllib.request.urlopen(url).read()
     f.write(img)
