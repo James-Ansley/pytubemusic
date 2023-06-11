@@ -69,7 +69,7 @@ Albums require a `track_data` list that defines track-specific data.
 
 - `start` a start time stamp defining when the track starts in the video
 - `end` an optional end time stamp – if not provided the start of the next track
-  will be used of the end of the video in the case of the last track
+  will be used or the end of the video in the case of the last track
 - `metadata` a table of track-specific metadata – the `title` tag is required.
   Track specific metadata overwrites album metadata. Track numbers are
   automatically filled but can be manually added.
