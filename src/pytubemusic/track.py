@@ -75,8 +75,8 @@ class Track:
         match type:
             case "track":
                 yield cls.from_track_part(**kwargs)
-            case "multi":
-                yield cls.from_multi_part(**kwargs)
+            case "merge":
+                yield cls.from_merge_part(**kwargs)
             case "split":
                 yield from cls.from_split_part(**kwargs)
             case "playlist":
@@ -108,7 +108,7 @@ class Track:
 
     @classmethod
     @log_call(on_enter="Downloading multi track `{metadata[title]}`")
-    def from_multi_part(
+    def from_merge_part(
             cls, tracks: TrackData, metadata: StrMap, cover: File, **kwargs,
     ) -> Self:
         segments = []
@@ -147,7 +147,7 @@ class Track:
         tracks = pad(tracks, dict, len(urls))
         data = [track | {"url": url} for url, track in zip(urls, tracks)
                 if not track.get("drop", False)]
-        return cls.from_multi_part(data, metadata, cover)
+        return cls.from_merge_part(data, metadata, cover)
 
     @classmethod
     @log_call(on_enter="Downloading playlist from: {url}")

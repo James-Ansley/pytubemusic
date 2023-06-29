@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1]
+
+# Bug Fixes
+
+- Fixed `merge` type not being recognised.
+
 ## [0.3.0]
 
 ### Changes
@@ -31,6 +37,8 @@ All notable changes to this project will be documented in this file.
 - Simple schema validation on required TOML fields
 - Humorous cows
 - Backoff/Retries on requests that seem to occasionally fail
+
+[0.3.1]: https://github.com/James-Ansley/pytubemusic/compare/v0.3.0...v0.3.1
 
 [0.3.0]: https://github.com/James-Ansley/pytubemusic/compare/v0.2.0...v0.3.0
 
