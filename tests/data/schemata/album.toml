@@ -1,0 +1,73 @@
+type = "album"
+
+[metadata]
+album = "AnAlbum"
+date = "2000"
+
+[[tracks]]
+type = "merge"
+tracks = [
+    { url = "https://www.youtube.com/watch?v=00000000000" },
+    { url = "https://www.youtube.com/watch?v=00000000000" },
+    { url = "https://www.youtube.com/watch?v=00000000000" },
+    { url = "https://www.youtube.com/watch?v=00000000000" },
+    { url = "https://www.youtube.com/watch?v=00000000000" },
+    { url = "https://www.youtube.com/watch?v=00000000000" },
+]
+[tracks.metadata]
+title = "Track1"
+
+
+[[tracks]]
+type = "track"
+url = "https://www.youtube.com/watch?v=00000000000"
+
+[tracks.metadata]
+title = "Track2"
+
+
+[[tracks]]
+type = "split"
+url = "https://www.youtube.com/watch?v=00000000000"
+tracks = [
+    { start = "00:00", metadata = { title = "Track3" } },
+    { start = "05:05", metadata = { title = "Track4" } },
+    { start = "12:20", metadata = { title = "Track5" } },
+    { start = "16:03", metadata = { title = "Track6" } },
+    { start = "17:21", metadata = { title = "Track7" } },
+    { start = "21:42", metadata = { title = "Track8" } },
+    { start = "26:10", metadata = { title = "Track9" } },
+    { start = "30:16", metadata = { title = "Track10" } },
+    { start = "35:29", metadata = { title = "Track11" } },
+]
+
+[[tracks]]
+type = "playlist"
+url = "https://www.youtube.com/playlist?list=0000000000000000000000000000000000"
+join = false
+tracks = [
+    { metadata = { title = "Track12" } },
+    { metadata = { title = "Track13" } },
+    { metadata = { title = "Track14" } },
+    { metadata = { title = "Track15" } },
+    { metadata = { title = "Track16" } },
+    { metadata = { title = "Track17" } },
+    { metadata = { title = "Track18" } },
+    { metadata = { title = "Track19" } },
+    { metadata = { title = "Track20" } },
+    { metadata = { title = "Track21" } },
+    { metadata = { title = "Track22" } },
+    { metadata = { title = "Track23" } },
+    { metadata = { title = "Track24" } },
+    { metadata = { title = "Track25" } },
+]
+
+[[tracks]]
+type = "playlist"
+url = "https://www.youtube.com/playlist?list=0000000000000000000000000000000000"
+join = true
+tracks = [
+    { }, { }, { }, { }, { }, { }, { }, { start = "00:05" }, { }, { }, { }, { }, { }, { },
+]
+[tracks.metadata]
+title = "Track26"

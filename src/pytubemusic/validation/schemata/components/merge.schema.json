@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "multitrack.schema.json",
+  "title": "PyTubeMusic Multi Track",
+  "description": "PyTubeMusic Multi Track Data",
+  "type": "object",
+  "required": ["type", "tracks", "metadata"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["merge"]
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": { "$ref": "video_url.schema.json" },
+          "start": { "$ref": "start_timestamp.schema.json" },
+          "end": { "$ref": "end_timestamp.schema.json" }
+        }
+      }
+    },
+    "metadata": { "$ref": "track_metadata.schema.json" }
+  }
+}

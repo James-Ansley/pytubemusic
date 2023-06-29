@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "start_timestamp.schema.json",
+  "title": "PyTubeMusic Time Stamp",
+  "type": "string",
+  "pattern": "^(\\d?\\d(:\\d\\d){1,2})(\\.\\d+)?$",
+  "description": "Start timestamp of the form 'H?:M:S.f?' – defaults to 00:00",
+  "default": "00:00"
+}

@@ -44,7 +44,7 @@ class Audio:
             format="mp3",
             tags=metadata,
             parameters=["-b:a", f"{self.bitrate}"],
-            cover=cover,
+            cover=cover.name if cover is not None else None,
         )
 
     @classmethod
@@ -64,11 +64,11 @@ class Audio:
         return cls(audio_data, raw_audio.bitrate)
 
     @classmethod
-    def join(cls, tracks: Iterable["Audio"]) -> Self:
-        tracks = iter(tracks)
-        first = next(tracks)
+    def join(cls, segments: Iterable["Audio"]) -> Self:
+        segments = iter(segments)
+        first = next(segments)
         bitrate = first.bitrate
         audio = first._audio_data
-        for track in tracks:
+        for track in segments:
             audio = audio.append(track._audio_data)
         return cls(audio, bitrate)

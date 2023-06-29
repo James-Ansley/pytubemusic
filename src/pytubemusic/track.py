@@ -1,12 +1,11 @@
 import os
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
-from tempfile import NamedTemporaryFile
-from typing import Any, Self
+from typing import Self
 
-from pipe_utils import Pipe
+from pipe_utils.override import *
 from pytube import Playlist
 
 from pytubemusic.audio import Audio
@@ -15,17 +14,20 @@ from pytubemusic.utils import *
 
 __all__ = ["Track"]
 
-STR_MAP = Mapping[str, Any]
-TRACK_DATA = Iterable[STR_MAP]
+from pytubemusic.utils import File
 
 
-@dataclass(frozen=True)
+@dataclass
 class Track:
     raw_audio: Audio
-    cover: NamedTemporaryFile
-    metadata: STR_MAP
-    start: timedelta = None
-    end: timedelta = None
+    metadata: StrMap
+    cover: File = None
+    start: timedelta | None = None
+    end: timedelta | None = None
+
+    def __post_init__(self):
+        self.start = to_delta(self.start)
+        self.end = to_delta(self.end)
 
     @property
     def audio(self) -> Audio:
@@ -42,7 +44,7 @@ class Track:
         """The track album – May be None"""
         return self.metadata.get("album")
 
-    @log_call(on_enter="Exporting '{self.metadata[title]}' to '{folder}'")
+    @log_call(on_enter="Exporting `{self.metadata[title]}` to `{folder}`")
     def export(self, folder: Path = Path(".")):
         """
         Writes the track to folder / {track.title}.mp3
@@ -54,146 +56,117 @@ class Track:
         """
         os.makedirs(folder, exist_ok=True)
         with open(pathify(folder, self.title), "wb") as f:
-            self.audio.export(f, self.metadata, self.cover.name)
+            self.audio.export(f, self.metadata, self.cover)
 
     @classmethod
-    @log_call(on_enter="Downloading '{metadata[album]}' from {url}")
+    @log_call(on_enter="Downloading album `{metadata[album]}`")
     def from_album(
-            cls,
-            url: str,
-            *,
-            track_data: Iterable[Mapping[str, Any]],
-            metadata: Mapping[str, str],
-            cover_url: str = None,
+            cls, tracks: TrackData, metadata: StrMap, cover: Mapping, **kwargs,
     ) -> Iterable[Self]:
-        """
-        Factory that constructs an Album from a single video that contains
-        multiple tracks in sequence.
-
-        ``track_data`` is a list of string maps indicating track-specific
-        data in the order of the tracks in the video and is of the form::
-
-            [ { start: ..., [end: ...], metadata: { title: ..., ... } }, ... ]
-
-        Where ``start`` and ``end`` (optional) are ``H?:M:S`` timestamps that
-        indicate the start and end time stamps of the track and ``metadata``
-        is a string map of track-specific FFMPEG MP3 metadata tags.
-
-        :param url: The URL of the video
-        :param track_data: A list of string maps of track data
-        :param metadata: A String map of FFMPEG MP3 metadata tags
-        :param cover_url: The url to a JPG cover image
-        :return: an iterator of Track objects
-        """
-        audio = Audio.from_url(url)
-        track_data = (
-                Pipe(track_data)
-                | (set_ends, audio.duration)
-                | (merge_metadata, metadata)
+        return (
+                Pipe(tracks)
+                | flat_map(lambda data: cls.track_parts(cover=cover, **data))
+                | map_indexed(lambda i, t:
+                              with_metadata(t, i, metadata), start=1)
         ).get()
-        for track in track_data:
-            yield cls(
-                audio,
-                get_cover(url, cover_url),
-                track["metadata"],
-                to_delta(track["start"]),
-                to_delta(track["end"]),
-            )
 
     @classmethod
-    @log_call(on_enter="Downloading '{metadata[title]}' from {url}")
-    def from_video(
+    def track_parts(cls, type: str, **kwargs) -> Iterator[Mapping]:
+        match type:
+            case "track":
+                yield cls.from_track_part(**kwargs)
+            case "multi":
+                yield cls.from_multi_part(**kwargs)
+            case "split":
+                yield from cls.from_split_part(**kwargs)
+            case "playlist":
+                if kwargs.get("join", False):
+                    yield cls.from_playlist_part_to_track(**kwargs)
+                else:
+                    yield from cls.from_playlist_part_to_multi(**kwargs)
+            case _:
+                raise ValueError(f"Unsupported track part type: `{type}`")
+
+    @classmethod
+    @log_call(on_enter="Downloading track `{metadata[title]}` from: {url}")
+    def from_track_part(
             cls,
             url: str,
-            *,
-            metadata: Mapping[str, str],
-            start: str = "00:00",
+            metadata: StrMap,
+            cover: File,
+            start: str = None,
             end: str = None,
-            cover_url: str = None,
+            **kwargs,
     ) -> Self:
-        """
-        Factory that constructs a Track from a video.
-
-        :param url: The URL of the video
-        :param metadata: A String map of FFMPEG MP3 metadata tags
-        :param start: A H?:M:S.f? timestamp indicating the start time of the
-            track. Defaults to 00:00:00.00
-        :param end: A H?:M:S.f? timestamp indicating the end time of the track.
-            Defaults to the length of the audio
-        :param cover_url: The url to a JPG cover image
-        :return: A new Track
-        """
-        audio = Audio.from_url(url)
         return cls(
-            audio,
-            get_cover(url, cover_url),
-            metadata,
-            to_delta(start),
-            to_delta(end) if end is not None else audio.duration,
+            raw_audio=Audio.from_url(url),
+            metadata=metadata,
+            cover=cover,
+            start=start,
+            end=end,
         )
 
     @classmethod
-    @log_call(on_enter="Downloading '{metadata[album]}' from playlist {url}")
-    def from_playlist(
-            cls,
-            url: str,
-            *,
-            metadata: Mapping[str, str],
-            track_data: Iterable[Mapping[str, Any]] = None,
-            cover_url: str = None,
-    ) -> Iterable[Self]:
-        """
-        Factory that constructs an Album from a playlist video that contains
-        multiple tracks in sequence.
+    @log_call(on_enter="Downloading multi track `{metadata[title]}`")
+    def from_multi_part(
+            cls, tracks: TrackData, metadata: StrMap, cover: File, **kwargs,
+    ) -> Self:
+        segments = []
+        log = log_iter(on_each="Downloading part {i} from: {0[url]}", start=1)
+        for track in log(tracks):
+            start = to_delta(track.get("start"))
+            end = to_delta(track.get("end"))
+            segments.append(Audio.from_url(track["url"]).snip(start, end))
+        return cls(
+            raw_audio=Audio.join(segments), metadata=metadata, cover=cover,
+        )
 
-        :param url: The URL of the playlist
-        :param track_data: A list of string maps of track data
-        :param metadata: A String map of FFMPEG MP3 metadata tags
-        :param cover_url: The url to a JPG cover image
-        :return: an iterator of Track objects
-        """
-        playlist = Playlist(url)
-        track_data = [{}] * len(playlist) if track_data is None else track_data
-        video_data = zip(playlist.videos, track_data)
-        for i, (video, data) in enumerate(video_data, start=1):
-            yield cls.from_video(
-                video.watch_url,
-                cover_url=cover_url,
-                metadata={
-                    **metadata,
-                    "track": i,
-                    "title": video.title,
-                    **data.get("metadata", {}),
-                },
-                **{k: v for k, v in data.items() if k != "metadata"},
+    @classmethod
+    @log_call(on_enter="Downloading split track from: {url}")
+    def from_split_part(
+            cls, url: str, tracks: TrackData, cover: File, **kwargs,
+    ) -> Iterable[Self]:
+        audio = Audio.from_url(url)
+        tracks = set_ends(tracks)
+        for track in tracks:
+            yield cls(
+                raw_audio=audio,
+                cover=cover,
+                metadata=track["metadata"],
+                start=track.get("start"),
+                end=track.get("end"),
             )
 
     @classmethod
-    @log_call(on_enter="Downloading multitrack '{metadata[title]}'")
-    def from_multi_track(
-            cls,
-            *,
-            track_data: Iterable[STR_MAP],
-            metadata: Mapping[str, str],
-            cover_url: str = None,
+    @log_call(on_enter="Downloading playlist as track from: {url}")
+    def from_playlist_part_to_track(
+            cls, url: str, tracks: TrackData, metadata: StrMap, cover: File,
+            **kwargs,
     ) -> Self:
-        """
-        Factory that constructs a Track from a list of videos.
+        urls = Playlist(url).video_urls
+        tracks = pad(tracks, dict, len(urls))
+        data = [track | {"url": url} for url, track in zip(urls, tracks)
+                if not track.get("drop", False)]
+        return cls.from_multi_part(data, metadata, cover)
 
-        :param track_data: An iterable of mappings of the form:
-                ``{"url": ..., "start": ..., "end": ...}``
-        :param metadata: A String map of FFMPEG MP3 metadata tags
-        :param cover_url: The url to a JPG cover image
-        :return: A new Track
-        """
-        track_data = [
-            (t["url"], t.get("start"), t.get("end")) for t in track_data
-        ]
-        logged_iter = log_iter(
-            on_each="Downloading track part {i}: {0[0]}", start=1,
-        )
-        audio = Audio.join(
-            Audio.from_url(url).snip(start, end)
-            for url, start, end in logged_iter(track_data)
-        )
-        return cls(audio, get_cover(track_data[0][0], cover_url), metadata)
+    @classmethod
+    @log_call(on_enter="Downloading playlist from: {url}")
+    def from_playlist_part_to_multi(
+            cls, url: str, tracks: TrackData, cover: File, **kwargs,
+    ) -> Iterator[Self]:
+        urls = Playlist(url).video_urls
+        tracks = pad(tracks, dict, len(urls))
+        for url, track in zip(urls, tracks):
+            if not track.get("drop", False):
+                data = track | {"url": url, "cover": cover}
+                yield cls.from_track_part(**data)
+
+
+def with_metadata(track: Track, index: int, metadata: StrMap) -> Track:
+    return Track(
+        raw_audio=track.raw_audio,
+        metadata={**metadata, "track": index, **track.metadata},
+        cover=track.cover,
+        start=track.start,
+        end=track.end,
+    )

@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "category.schema.json",
+  "title": "PyTubeMusic Album",
+  "description": "PyTubeMusic Album Data",
+  "type": "object",
+  "required": [
+    "type"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "album",
+        "track"
+      ],
+      "description": "Type of Metadata contained in the current file"
+    }
+  },
+  "if": {
+    "properties": {
+      "type": {
+        "const": "album"
+      }
+    },
+    "required": [
+      "type"
+    ]
+  },
+  "then": {
+    "$ref": "album.schema.json"
+  },
+  "else": {
+    "$ref": "track.schema.json"
+  }
+}

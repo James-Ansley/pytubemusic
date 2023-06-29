@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/components/album_metadata.schema.json",
+  "title": "PyTubeMusic Album Metadata",
+  "description": "FFMPEG MP3 Metadata fields – unchecked by schema except album",
+  "type": "object",
+  "required": ["album"],
+  "properties": {
+    "album": { "type": "string", "description": "Album title" }
+  }
+}

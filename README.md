@@ -28,125 +28,108 @@ downloading fails.
 
 ## Usage
 
-PyTubeMusic can download tracks in three formats:
-
-- Tracks (Single files)
-- Albums (A single video that is split up into individual tracks on an album)
-- Playlists (Videos in a playlist that are downloaded as tracks on an album)
-- Multi Tracks (Several videos that get combined into a single track)
-
-Each type of track needs a different configuration file that includes metadata.
-These are described below.
-
-Note: the term "timestamp" refers to a string of the form: "H?:M:S.f?" – for
-example: "23:55.75", "1:12:00", "5:03", "17:00.5"
-
-### Tracks
-
-> A single video downloaded as a track
-
-Track toml files have the following format:
+PyTubeMusic track data is specified in TOML formats. TOML files have the
+following format:
 
 ```toml
+type = "track | album"
+
+cover = { url = "URL" }
+#cover = { file = "Path" }
+
+# For "track" type only
 url = "..."  # URL to video
-
-cover_url = "..."  # Track cover jpg URL (optional – uses thumbnail by default)
-
-start = "..."  # start timestamp (optional)
-end = "..."  # end timestamp (optional)
+start = "..."  # start timestamp for track (optional - default 00:00)
+end = "..."  # end timestamp for track (optional - default end of video)
 
 [metadata]
-title = "..."  # Track Name (required)
-# Any other FFMPEG MP3 metadata tags
+album = "..."  # Required for "album" type
+title = "..."  # required for "track" type
+# Other FFMPEG metadata tags (unchecked)
+
+
+# For album type only – array of track types
+[[tracks]]
+# Tracks data format specified below
 ```
 
-### Albums
+### Album `tracks` blocks
 
-> A single video that is split into separate tracks on an album
+For albums, several different track blocks can be specified. These are:
 
-Albums require a `track_data` list that defines track-specific data.
-`track_data` is a list of tables that includes:
-
-- `start` a start time stamp defining when the track starts in the video
-- `end` an optional end time stamp – if not provided the start of the next track
-  will be used or the end of the video in the case of the last track
-- `metadata` a table of track-specific metadata – the `title` tag is required.
-  Track specific metadata overwrites album metadata. Track numbers are
-  automatically filled but can be manually added.
-
-```toml
-# album_data.toml
-url = "..."  # URL here
-
-cover_url = "..."  # Track cover jpg URL (optional – uses thumbnail by default)
-
-track_data = [
-    { start = "...", metadata = { title = "..." } },
+- `track` - a single track from a video:
+  ```toml
+  [[tracks]]
+  type = "track"
+  url = "..."  # URL to video
+  start = "..."  # start timestamp (optional - default 00:00)
+  end = "..."  # end timestamp(optional - default end of video)
+  
+  [tracks.metadata]
+  title = "..." # required for "track" type
+  # Other FFMPEG metadata tags (unchecked)
+  ```
+- `split` - several tracks from a single video:
+  ```toml
+  [[tracks]]
+  type = "split"
+  url = "..."  # URL to video
+  tracks = [
     { start = "...", end = "...", metadata = { title = "..." } },
-]
+  ]
+  ```
+  start and end timestamps in track list are optional - start defaults to 00:00
+  and end defaults to the start of the next track or the end of the video. The
+  metadata title is required – other ffmpeg metadata tags can be added which
+  will override album-wide metadata.
+- `merge` - combines multiple videos into one track
+  ```toml
+  [[tracks]]
+  type = "merge"
+  tracks = [
+    {url = "...", start = "...", end = "..."},
+  ]
+  [tracks.metadata]
+  title = "..." # required
+  # Other FFMPEG metadata tags (unchecked)
+  ```
+  start and end timestamps in track list are optional - start defaults to 00:00
+  and end defaults to the start of the next track or the end of the video.
+- `playlist` - downloads a playlist - as either several tracks or combined into
+  one.
+  ```toml
+  [[tracks]]
+  type = "playlist"
+  join = false  # whether to join videos into single track (optional, default false)
+  tracks = [
+    # include metadata only if join = false
+    {start = "...", end = "...", drop = false, metadata = {title = "..."}},
+  ]
 
-[metadata]
-album = "..."  # Album name (required)
-# Any other FFMPEG MP3 metadata tags
-```
-
-### Playlists
-
-> A playlist of album tracks
-
-For playlists, `track_data` is optional. If provided it must be provided for all
-tracks in the playlist. It has the same format as album `track_data`. If not
-provided, the title of each video will be used for each track title.
-
-```toml
-url = "..."  # URL to playlist
-
-cover_url = "..."  # Track cover jpg URL (optional – uses thumbnails by default)
-
-# Optional track data
-track_data = []
-
-[metadata]
-album = "..."  # Album name (required)
-# Any other FFMPEG MP3 metadata tags
-```
-
-### Multi Tracks
-
-> Several videos combined into a single track
-
-Effectively a list of URLs with metadata and an optional cover image. Note
-that `track_data` here has a different format to other cli commands:
-
-```toml
-cover_url = "..."  # Track cover jpg URL (optional – uses thumbnail of first video by default)
-
-# Required track data
-track_data = [
-    # Url to video and optional start and end timestamps
-    { url = "...", start = "...", end = "..." },
-    # ...
-]
-
-[metadata]
-title = "..."  # Track name (required)
-# Any other FFMPEG MP3 metadata tags
-```
+  # include only if join is true
+  [tracks.metadata]
+  title = "..."
+  ```
+  Metadata needs to be included on tracks only if join is false, and for the
+  overall track if join is true. The `drop` boolean on each track specifies
+  whether that video should be ignored from the playlist videos. start and end
+  timestamps are optional.
 
 ### CLI
 
-A `pytubemusic` command will be added upon installation.
+A `pytubemusic` command will be added upon installation. The help for the CLI
+is:
 
-This has four commands: `album`, `track`, `playlist`, `multitrack`.
-Each command corresponds to one of the file types mentioned above.
+```text
+Usage: pytubemusic [OPTIONS] PATH
 
-The commands all take the path to a config TOML file and an optional `-o`
-or `--out` option pointing to a directory to write the resulting tracks to.
-(Note: albums and playlists are put into their own subdirectory with the album
-name under the out directory).
+Arguments
+ * path PATH Path to track/album toml file [required]
 
-For example:
-
+Options
+ --out -o PATH The directory files will be written to [default: .]
+ --help Show this message and exit.
 ```
-pytubemusic album myConfig.toml -o exports
-```
+
+Tracks are written to the cwd unless `--out` is specified, albums are written to
+a directory with the album name within the `--out` directory.

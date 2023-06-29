@@ -1,0 +1,18 @@
+type = "album"
+
+[[tracks]]
+type = "playlist"
+join = true
+url = "https://www.youtube.com/playlist?list=0000000000000000000000000000000000"
+metadata = { title = "Track1" }
+
+[[tracks]]
+type = "playlist"
+join = false
+url = "https://www.youtube.com/playlist?list=0000000000000000000000000000000000"
+tracks = [
+    {metadata = {title = "Track1"}}
+]
+
+[metadata]
+album = "Album"

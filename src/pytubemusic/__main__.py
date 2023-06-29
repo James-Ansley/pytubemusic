@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Mapping
 from pathlib import Path
 
 import cowexcept
@@ -6,6 +7,7 @@ from typer import Argument, Option, Typer
 
 from .logutils import log_block, log_call, open_or_panic
 from .track import Track
+from .utils import get_cover
 from .validation import loadf_or_panic
 
 app = Typer(add_completion=False)
@@ -14,123 +16,47 @@ logger = logging.getLogger("pytubemusic")
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
+CANNOT_OPEN_FILE = "Cannot open `{}`".strip()
+INVALID_TOML_FORMAT = "Invalid TOML format for `{}`"
 
-@app.command(
-    "album",
-    help="Gets album tracks as individual files "
-         "from the video associated with the album_data file",
-)
+
+@app.command()
 @log_call(
-    on_enter="Building album from '{album_data}'",
+    on_enter="Loading from '{path}'",
     on_exit="\x1b[32mDONE!\x1b[0m",
-    on_error="\x1b[31mProcessing Album Failed.\x1b[0m",
+    on_error="\x1b[31mProcessing Failed.\x1b[0m",
 )
-def make_album(
-        album_data: Path = Argument(..., help="The album data"),
+def main(
+        path: Path = Argument(..., help="Path to track/album toml file"),
         out: Path = Option(
             Path("."),
             "--out", "-o",
-            help="The directory album tracks will be written to. "
-                 "Defaults to the album name",
-        )
+            help="The directory files will be written to",
+        ),
 ):
-    prefix = "Processing Album Failed.\n"
-    err_msg = f"{prefix}Cannot open `{album_data}`"
-    with open_or_panic(album_data, "rb", err_msg) as f:
-        err_msg = f"{prefix}Invalid Album TOML format for `{album_data}`."
-        album_data = loadf_or_panic(f, "album", err_msg)
-    tracks = list(Track.from_album(**album_data))
+    cowexcept.activate()
+    with open_or_panic(path, "rb", CANNOT_OPEN_FILE.format(path)) as f:
+        data = loadf_or_panic(f, "type", INVALID_TOML_FORMAT.format(path))
+    data |= {"cover": get_cover(data.get("cover"), path)}
+    match data:
+        case {"type": "album", **data}:
+            make_album(data, out)
+        case {"type": "track", **data}:
+            make_track(data, out)
+
+
+@log_call(on_enter="Building album")
+def make_album(data: Mapping, out: Path):
+    tracks = list(Track.from_album(**data))
     with log_block(on_enter="Exporting Tracks"):
         for track in tracks:
             track.export(out / track.album)
 
 
-@app.command(
-    "track",
-    help="Gets a single audio file from the "
-         "video associated with the track_data file",
-)
-@log_call(
-    on_enter="Building track from '{track_data}'",
-    on_exit="\x1b[32mDONE!\x1b[0m",
-    on_error="\x1b[31mProcessing Track Failed.\x1b[0m",
-)
-def make_track(
-        track_data: Path = Argument(..., help="The track data"),
-        out: Path = Option(
-            Path("."),
-            "--out", "-o",
-            help="The directory album tracks will be written to. "
-                 "Defaults to the cwd",
-        )
-):
-    prefix = "Processing Track Failed.\n"
-    err_msg = f"{prefix}Cannot open `{track_data}`"
-    with open_or_panic(track_data, "rb", err_msg) as f:
-        err_msg = f"{prefix}Invalid Track TOML format for `{track_data}`."
-        track_data = loadf_or_panic(f, "track", err_msg)
-    track = Track.from_video(**track_data)
+@log_call(on_enter="Building track")
+def make_track(data: Mapping, out: Path):
+    track = Track.from_track_part(**data)
     track.export(out)
-
-
-@app.command(
-    "playlist",
-    help="Gets tracks from the videos associated with the playlist",
-)
-@log_call(
-    on_enter="Building album from '{playlist_data}'",
-    on_exit="\x1b[32mDONE!\x1b[0m",
-    on_error="\x1b[31mProcessing Playlist Failed.\x1b[0m",
-)
-def make_playlist_album(
-        playlist_data: Path = Argument(..., help="The track data"),
-        out: Path = Option(
-            Path("."),
-            "--out", "-o",
-            help="The directory album tracks will be written to. "
-                 "Defaults to the cwd",
-        )
-):
-    err_msg = f"Processing Playlist Failed.\nCannot open `{playlist_data}`"
-    with open_or_panic(playlist_data, "rb", err_msg) as f:
-        err_msg = f"Processing Playlist Failed.\nInvalid Playlist TOML format."
-        playlist_data = loadf_or_panic(f, "playlist", err_msg)
-    tracks = list(Track.from_playlist(**playlist_data))
-    with log_block(on_enter="Exporting tracks"):
-        for track in tracks:
-            track.export(out / track.album)
-
-
-@app.command(
-    "multitrack",
-    help="Combines several tracks into one",
-)
-@log_call(
-    on_enter="Building track from '{multi_track_data}'",
-    on_exit="\x1b[32mDONE!\x1b[0m",
-    on_error="\x1b[31mProcessing track Failed.\x1b[0m",
-)
-def make_multi_track(
-        multi_track_data: Path = Argument(..., help="The track data"),
-        out: Path = Option(
-            Path("."),
-            "--out", "-o",
-            help="The directory album tracks will be written to. "
-                 "Defaults to the cwd",
-        )
-):
-    prefix = "Processing Multi Track Failed.\n"
-    err_msg = f"{prefix}Cannot open `{multi_track_data}`"
-    with open_or_panic(multi_track_data, "rb", err_msg) as f:
-        err_msg = f"{prefix}Invalid Track TOML format for `{multi_track_data}`."
-        track_data = loadf_or_panic(f, "multitrack", err_msg)
-    track = Track.from_multi_track(**track_data)
-    track.export(out)
-
-
-@app.callback(invoke_without_command=True)
-def main():
-    cowexcept.activate()
 
 
 app()

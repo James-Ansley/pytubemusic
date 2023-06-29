@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "track_metadata.schema.json",
+  "title": "PyTubeMusic Track Metadata",
+  "description": "FFMPEG MP3 Metadata fields – unchecked by schema except title",
+  "type": "object",
+  "required": ["title"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Track title"
+    }
+  }
+}

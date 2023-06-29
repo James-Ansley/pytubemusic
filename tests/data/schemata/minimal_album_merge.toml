@@ -1,0 +1,11 @@
+type = "album"
+
+[[tracks]]
+type = "merge"
+tracks = [
+    { url = "https://www.youtube.com/watch?v=00000000000" }
+]
+metadata = { title = "Track1" }
+
+[metadata]
+album = "Album"

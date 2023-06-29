@@ -3,7 +3,7 @@ import functools
 import inspect
 import logging
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from textwrap import indent
 from typing import Type
 
@@ -126,14 +126,16 @@ def log_iter(
         on_exit: str = None,
         start: int = 0,
 ):
-    def iterator(data: Iterable):
+    def iterator(data: Iterable) -> Iterator:
         global _INDENT
-        _INDENT += INDENT_WIDTH
-        log_message(on_enter, [], {}, level)
+        if on_enter is not None and on_exit is not None:
+            log_message(on_enter, [], {}, level)
+            _INDENT += INDENT_WIDTH
         for i, e in enumerate(data, start=start):
             log_message(on_each, [e], {"i": i}, level)
             yield e
-        log_message(on_exit, [], {}, level)
-        _INDENT -= INDENT_WIDTH
+        if on_enter is not None and on_exit is not None:
+            _INDENT -= INDENT_WIDTH
+            log_message(on_exit, [], {}, level)
 
     return iterator

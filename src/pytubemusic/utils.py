@@ -2,23 +2,29 @@ import urllib.request
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
 from itertools import chain, pairwise
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from tempfile import NamedTemporaryFile
 from typing import Any
 
-from pytube import YouTube
-
 __all__ = [
     "to_delta", "to_timestamp", "to_microseconds", "pathify",
-    "set_ends", "merge_metadata", "get_cover",
+    "set_ends", "merge_metadata", "get_cover", "pad", "File", "TrackData",
+    "StrMap",
 ]
 
-STR_MAP = Mapping[str, Any]
-TRACK_DATA = Iterable[STR_MAP]
+StrMap = Mapping[str, Any]
+TrackData = Iterable[StrMap]
+
+File = NamedTemporaryFile
 
 
-def to_delta(timestamp: str) -> timedelta:
+def to_delta(timestamp: str | timedelta | None) -> timedelta | None:
     """Converts a H?:M:S.f? timestamp string to a timedelta"""
+    if timestamp is None:
+        return None
+    elif isinstance(timestamp, timedelta):
+        return timestamp
+
     if "." in timestamp:
         timestamp, microseconds = timestamp.split(".")
     else:
@@ -54,21 +60,19 @@ def pathify(root: PurePath, title: str, ext=".mp3") -> PurePath:
     return root / (title.replace("/", "\u2044") + ext)
 
 
-def set_ends(track_data: TRACK_DATA, end: timedelta) -> TRACK_DATA:
+def set_ends(track_data: TrackData) -> TrackData:
     """
     Fills in missing "end" timestamps setting them to the start of the next
     track. Returns a new mapping of track data.
     """
-    track_data = chain(track_data, [{"start": to_timestamp(end)}])
-    for i, (t1, t2) in enumerate(pairwise(track_data), start=1):
+    for t1, t2 in pairwise(chain(track_data, [{"start": None}])):
         yield t1 | {
-            "start": t1["start"],
+            "start": t1.get("start"),
             "end": t1.get("end", t2["start"]),
-            "metadata": {"track": i, **t1.get("metadata", {})},
         }
 
 
-def merge_metadata(track_data: TRACK_DATA, metadata: STR_MAP) -> TRACK_DATA:
+def merge_metadata(track_data: TrackData, metadata: StrMap) -> TrackData:
     """
     Merges any album metadata with track-specific metadata.
     Track metadata overrides album metadata.
@@ -77,13 +81,26 @@ def merge_metadata(track_data: TRACK_DATA, metadata: STR_MAP) -> TRACK_DATA:
         yield {**data, "metadata": {**metadata, **data["metadata"]}}
 
 
-def get_cover(video_url, cover_url) -> NamedTemporaryFile:
+def get_cover(cover, relative_to: Path) -> "None | NamedTemporaryFile":
     """Downloads an image into a named temporary file to be used as cover art"""
-    if cover_url is None:
-        url = YouTube(video_url).thumbnail_url
-    else:
-        url = cover_url
-    f = NamedTemporaryFile(suffix='.jpg')
-    img = urllib.request.urlopen(url).read()
-    f.write(img)
-    return f
+    match cover:
+        case {"url": url}:
+            f = NamedTemporaryFile(suffix='.jpg')
+            img = urllib.request.urlopen(url).read()
+            f.write(img)
+            return f
+        case {"file": path}:
+            tmp = NamedTemporaryFile(suffix='.jpg')
+            with open(relative_to.parent / path, "rb") as f:
+                tmp.write(f.read())
+            return tmp
+        case None:
+            return None
+        case _:
+            raise ValueError(f"Unrecognised Cover format: `{cover}`")
+
+
+def pad(tracks, factory, length):
+    tracks = list(tracks)
+    tracks += [factory() for _ in range(length - len(tracks))]
+    return tracks

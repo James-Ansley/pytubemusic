@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "video_url.schema.json",
+  "title": "PyTubeMusic Video URL",
+  "type": "string",
+  "pattern": "(?:v=|\/)([0-9A-Za-z_-]{11}).*",
+  "description": "URL to video"
+}
