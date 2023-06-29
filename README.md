@@ -1,6 +1,6 @@
 # PyTubeMusic
 
-A cli that may or may not download albums from a certain website.
+A cli that may or may not download music from a certain website.
 
 ## Install
 
@@ -135,13 +135,13 @@ title = "..."  # Track name (required)
 
 ### CLI
 
-A `pytubemusic` command will be exposed.
+A `pytubemusic` command will be added upon installation.
 
 This has four commands: `album`, `track`, `playlist`, `multitrack`.
 Each command corresponds to one of the file types mentioned above.
 
 The commands all take the path to a config TOML file and an optional `-o`
-or `--out` option pointing to a directory to write the resulting tracks too.
+or `--out` option pointing to a directory to write the resulting tracks to.
 (Note: albums and playlists are put into their own subdirectory with the album
 name under the out directory).
 
