@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.2]
+
+### Changes
+
+- CLI now panics on missing cover files instead of crashing
+
 ## [0.3.1]
 
 # Bug Fixes
@@ -37,6 +43,8 @@ All notable changes to this project will be documented in this file.
 - Simple schema validation on required TOML fields
 - Humorous cows
 - Backoff/Retries on requests that seem to occasionally fail
+
+[0.3.2]: https://github.com/James-Ansley/pytubemusic/compare/v0.3.1...v0.3.2
 
 [0.3.1]: https://github.com/James-Ansley/pytubemusic/compare/v0.3.0...v0.3.1
 

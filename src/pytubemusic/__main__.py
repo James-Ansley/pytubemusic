@@ -5,9 +5,9 @@ from pathlib import Path
 import cowexcept
 from typer import Argument, Option, Typer
 
-from .logutils import log_block, log_call, open_or_panic
+from .logutils import log_block, log_call
 from .track import Track
-from .utils import get_cover
+from .utils import get_cover, open_or_panic
 from .validation import loadf_or_panic
 
 app = Typer(add_completion=False)

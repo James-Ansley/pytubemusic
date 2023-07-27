@@ -113,12 +113,6 @@ def log_message(msg, fmt_args, fmt_kwargs, level):
         logger.log(level, msg)
 
 
-@contextlib.contextmanager
-def open_or_panic(file_name, mode, msg):
-    with (PanicOn(OSError, msg), open(file_name, mode) as f):
-        yield f
-
-
 def log_iter(
         level=logging.INFO,
         on_each: str = None,

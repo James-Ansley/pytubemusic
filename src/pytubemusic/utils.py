@@ -1,3 +1,4 @@
+import contextlib
 import urllib.request
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
@@ -6,10 +7,12 @@ from pathlib import Path, PurePath
 from tempfile import NamedTemporaryFile
 from typing import Any
 
+from pytubemusic.logutils import PanicOn
+
 __all__ = [
     "to_delta", "to_timestamp", "to_microseconds", "pathify",
     "set_ends", "merge_metadata", "get_cover", "pad", "File", "TrackData",
-    "StrMap",
+    "StrMap", "open_or_panic",
 ]
 
 StrMap = Mapping[str, Any]
@@ -91,7 +94,8 @@ def get_cover(cover, relative_to: Path) -> "None | NamedTemporaryFile":
             return f
         case {"file": path}:
             tmp = NamedTemporaryFile(suffix='.jpg')
-            with open(relative_to.parent / path, "rb") as f:
+            msg = f"Cannot find cover file"
+            with open_or_panic(relative_to.parent / path, "rb", msg) as f:
                 tmp.write(f.read())
             return tmp
         case None:
@@ -104,3 +108,9 @@ def pad(tracks, factory, length):
     tracks = list(tracks)
     tracks += [factory() for _ in range(length - len(tracks))]
     return tracks
+
+
+@contextlib.contextmanager
+def open_or_panic(file_name, mode, msg):
+    with (PanicOn(OSError, msg), open(file_name, mode) as f):
+        yield f
