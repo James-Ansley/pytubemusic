@@ -4,14 +4,14 @@ from collections.abc import Callable
 
 from enum import Enum
 
-__all__ = [
+__all__ = (
     "LOGGER",
     "on_enter",
     "on_exit",
     "on_error",
     "LogLevel",
     "setup_handler",
-]
+)
 
 LOGGER = logging.getLogger("pytubemusic")
 
@@ -38,11 +38,11 @@ def setup_handler(
     logger.addHandler(handler)
 
 
-def on_enter[** P, R](
-        msg: str | Callable[[P], str],
+def on_enter[**P, R](
+        msg: str | Callable[P, str],
         level: int = logging.INFO,
         logger: logging.Logger = LOGGER,
-) -> Callable[[Callable[[P], R]], Callable[[P], R]]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Returns a decorator that logs function calls. Logs are emitted before
     calling the function.
@@ -54,7 +54,7 @@ def on_enter[** P, R](
     :return: A decorator
     """
 
-    def decorator(func: Callable[[P], R]) -> Callable[[P], R]:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             message = msg(*args, **kwargs) if isinstance(msg, Callable) else msg
@@ -66,11 +66,11 @@ def on_enter[** P, R](
     return decorator
 
 
-def on_exit[** P, R](
+def on_exit[**P, R](
         msg: str | Callable[[R], str],
         level: int = logging.INFO,
         logger: logging.Logger = LOGGER,
-) -> Callable[[Callable[[P], R]], Callable[[P], R]]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Returns a decorator that logs function calls. Logs are emitted as
     the function returns.
@@ -82,7 +82,7 @@ def on_exit[** P, R](
     :return: A decorator
     """
 
-    def decorator(func: Callable[[P], R]) -> Callable[[P], R]:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             result = func(*args, **kwargs)
@@ -95,12 +95,12 @@ def on_exit[** P, R](
     return decorator
 
 
-def on_error[** P, R, E: Exception](
+def on_error[**P, R, E: Exception](
         msg: str | Callable[[E], str],
         level: int = logging.ERROR,
         catch: type[E] = Exception,
         logger: logging.Logger = LOGGER,
-) -> Callable[[Callable[[P], R]], Callable[[P], R]]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Returns a decorator that logs function calls. Logs are emitted as
     the function returns.
@@ -113,7 +113,7 @@ def on_error[** P, R, E: Exception](
     :return: A decorator
     """
 
-    def decorator(func: Callable[[P], R]) -> Callable[[P], R]:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             try:
