@@ -101,35 +101,35 @@ def split_tracks_can_be_flattened_to_multiple_track_data_objects():
         TrackData(
             metadata=Tags(title="Track 1"),
             cover=None,
-            track_parts=[
+            track_parts=(
                 AudioData(
                     url="www.example.com",
                     start=timedelta(seconds=5),
                     end=timedelta(seconds=10),
-                )
-            ],
+                ),
+            ),
         ),
         TrackData(
             metadata=Tags(title="Track 2"),
             cover=None,
-            track_parts=[
+            track_parts=(
                 AudioData(
                     url="www.example.com",
                     start=timedelta(seconds=10),
                     end=timedelta(seconds=15),
                 ),
-            ],
+            ),
         ),
         TrackData(
             metadata=Tags(title="Track 3"),
             cover=None,
-            track_parts=[
+            track_parts=(
                 AudioData(
                     url="www.example.com",
                     start=timedelta(seconds=15),
                     end=None
-                )
-            ],
+                ),
+            ),
         ),
     )
     assert tuple(TrackData.from_track(split)) == expect
@@ -147,9 +147,9 @@ def a_split_track_containing_a_single_track_can_be_flattened():
         TrackData(
             metadata=Tags(title="Track 1"),
             cover=None,
-            track_parts=[
+            track_parts=(
                 AudioData(url="www.example.com", start=timedelta(seconds=5)),
-            ],
+            ),
         ),
     )
     assert tuple(TrackData.from_track(split)) == expect
@@ -277,3 +277,70 @@ def a_merge_can_be_flattened_into_track_data():
         ),
     )
     assert tuple(TrackData.from_track(playlist)) == expect
+
+
+@test
+def an_album_containing_a_single_track_type_can_be_flattened():
+    single_album = Album(
+        metadata=AlbumTags(album="My Album"),
+        cover=File(path="/foo.png"),
+        tracks=(
+            Single(url="www.example.com", metadata=TrackTags(title="My Track")),
+        )
+    )
+    expect = TrackData(
+        metadata=Tags(album="My Album", title="My Track", track=1),
+        cover="file:///foo.png",
+        track_parts=(AudioData("www.example.com"),)
+    ),
+    assert tuple(TrackData.from_album(single_album)) == expect
+
+
+@test
+def an_album_containing_multiple_tracks_can_be_flattened():
+    single_album = Album(
+        metadata=AlbumTags(album="My Album"),
+        cover=File(path="/foo.png"),
+        tracks=(
+            Single(url="www.example.com/1",
+                   metadata=TrackTags(title="My Track")),
+            Split(
+                url="www.example.com/2",
+                tracks=(
+                    TrackStub(metadata=TrackTags(title="My Track 2")),
+                    TrackStub(
+                        metadata=TrackTags(title="My Track 3"),
+                        start="00:23:45",
+                    ),
+                )
+            ),
+        )
+    )
+    expect = (
+        TrackData(
+            metadata=Tags(album="My Album", title="My Track", track=1),
+            cover="file:///foo.png",
+            track_parts=(AudioData("www.example.com/1"),)
+        ),
+        TrackData(
+            metadata=Tags(album="My Album", title="My Track 2", track=2),
+            cover="file:///foo.png",
+            track_parts=(
+                AudioData(
+                    "www.example.com/2",
+                    end=timedelta(minutes=23, seconds=45),
+                ),
+            )
+        ),
+        TrackData(
+            metadata=Tags(album="My Album", title="My Track 3", track=3),
+            cover="file:///foo.png",
+            track_parts=(
+                AudioData(
+                    "www.example.com/2",
+                    start=timedelta(minutes=23, seconds=45),
+                ),
+            )
+        ),
+    )
+    assert tuple(TrackData.from_album(single_album)) == expect

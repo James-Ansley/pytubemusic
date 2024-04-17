@@ -42,7 +42,17 @@ class TrackData:
 
     @classmethod
     def from_album(cls, album: Album) -> Iterator[Self]:
-        ...
+        tracks = [
+            track_data
+            for track in album.tracks
+            for track_data in cls.from_track(track, album.metadata, album.cover)
+        ]
+        for i, track in enumerate(tracks, start=1):
+            yield TrackData(
+                metadata=track.metadata + Tags(track=i),
+                cover=track.cover,
+                track_parts=track.track_parts,
+            )
 
     @classmethod
     def from_track(
@@ -96,20 +106,21 @@ class TrackData:
             yield cls(
                 metadata=track.tracks[i].metadata + tags,
                 cover=cover.as_uri() if cover is not None else None,
-                track_parts=[
+                track_parts=(
                     AudioData(
                         url=track.url,
                         start=track.tracks[i].start,
-                        end=track.tracks[i].end or track.tracks[i + 1].start),
-                ],
+                        end=track.tracks[i].end or track.tracks[i + 1].start
+                    ),
+                ),
             )
         last = track.tracks[-1]
         yield cls(
             metadata=last.metadata + tags,
             cover=cover.as_uri() if cover is not None else None,
-            track_parts=[
-                AudioData(url=track.url, start=last.start, end=last.end)
-            ]
+            track_parts=(
+                AudioData(url=track.url, start=last.start, end=last.end),
+            )
         )
 
     @classmethod
