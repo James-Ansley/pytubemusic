@@ -1,8 +1,6 @@
-backoff~=2.2.1
-cowexcept~=1.3.0
-jsonschema~=4.17.3
-pipe-utils~=0.3.0
-pydub~=0.25.1
-python-cowsay~=1.0.2
-pytube>=15.0.0
-typer~=0.7.0
+arguably~=1.2.5
+pipe-utils~=0.4.0
+pydub~=0.25.0
+python-cowsay~=1.0.0
+pytube~=15.0.0
+pydantic~=2.6.0

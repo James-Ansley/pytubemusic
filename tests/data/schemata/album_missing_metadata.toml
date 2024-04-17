@@ -1,8 +1,0 @@
-type = "album"
-
-[[tracks]]
-type = "split"
-url = "https://www.youtube.com/watch?v=00000000000"
-tracks = [
-    {metadata = {title = "Track1"}},
-]

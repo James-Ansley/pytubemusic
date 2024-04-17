@@ -1,62 +1,94 @@
+import enum
 import logging
-from collections.abc import Mapping
-from pathlib import Path
+import sys
+from pathlib import PurePath, Path
+from typing import Literal
 
-import cowexcept
-from typer import Argument, Option, Typer
+import arguably
+from pipe_utils.override import *
 
-from .logutils import log_block, log_call
-from .track import Track
-from .utils import get_cover, open_or_panic
-from .validation import loadf_or_panic
-
-app = Typer(add_completion=False)
-
-logger = logging.getLogger("pytubemusic")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-
-CANNOT_OPEN_FILE = "Cannot open `{}`".strip()
-INVALID_TOML_FORMAT = "Invalid TOML format for `{}`"
+from pytubemusic.model import *
+from pytubemusic.utils.funcs import kwarged
+from pytubemusic.utils.logs import LogLevel, setup_handler
 
 
-@app.command()
-@log_call(
-    on_enter="Loading from '{path}'",
-    on_exit="\x1b[32mDONE!\x1b[0m",
-    on_error="\x1b[31mProcessing Failed.\x1b[0m",
-)
-def main(
-        path: Path = Argument(..., help="Path to track/album toml file"),
-        out: Path = Option(
-            Path("."),
-            "--out", "-o",
-            help="The directory files will be written to",
-        ),
+class Fmt(enum.Enum):
+    TOML = "TOML"
+    JSON = "JSON"
+    Auto = "AUTO"
+
+
+@arguably.command
+def pytubemusic(
+        config: PurePath,
+        *,
+        out: PurePath | None = None,
+        fmt: Fmt | None = Fmt.Auto,
+        quiet: bool = False,
+        log: LogLevel = LogLevel.INFO,
 ):
-    cowexcept.activate()
-    with open_or_panic(path, "rb", CANNOT_OPEN_FILE.format(path)) as f:
-        data = loadf_or_panic(f, "type", INVALID_TOML_FORMAT.format(path))
-    data |= {"cover": get_cover(data.get("cover"), path)}
-    match data:
-        case {"type": "album", **data}:
-            make_album(data, out)
-        case {"type": "track", **data}:
-            make_track(data, out)
+    """
+    Exports the track(s) from the specified ``config`` file.
+
+    :param config: The path to the configuration file specifying video data
+    :param out: [-o] The directory files/folders will be exported to.
+        If not given, uses the cwd.
+    :param fmt: [-f] The format of the conf file (either "JSON" or "TOML").
+        If not given, the format is inferred from the file extension.
+    :param quiet: [-q] Whether logs should be suppressed
+    :param log: The log level if not quiet
+    """
+    if not quiet:
+        setup_handler(logging.StreamHandler(sys.stderr), log)
+
+    with open(config, "rb") as f: (
+            Pipe >> f
+            | get_parser >> config >> fmt
+            | kwarged >> RootModel
+            | it.root
+            | case_when >> {
+                instance_of >> Album: parse_album,
+                instance_of >> Track: parse_track,
+              }
+            | for_each >> (export >> (out or Path.cwd()))
+    ).get()
 
 
-@log_call(on_enter="Building album")
-def make_album(data: Mapping, out: Path):
-    tracks = list(Track.from_album(**data))
-    with log_block(on_enter="Exporting Tracks"):
-        for track in tracks:
-            track.export(out / track.album)
+def parse_album(album):
+    ...
+
+def parse_track(track):
+    ...
 
 
-@log_call(on_enter="Building track")
-def make_track(data: Mapping, out: Path):
-    track = Track.from_track_part(**data)
-    track.export(out)
+@curry
+def get_parser(
+      conf: PurePath,
+      fmt: Literal["JSON", "TOML", "AUTO"],
+) -> Loader[bytes, dict[str, Any]]:
+    if fmt is None and conf.suffix not in (".json", ".toml"):
+        panic("\n".join((
+            "The type of the config path cannot be determined as JSON or TOML.",
+            "Use a suffix (.toml or .json) or specify the --fmt option.",
+        )))
+    elif fmt == Fmt.JSON or conf.suffix == ".json":
+        return json.load
+    elif fmt == Fmt.TOML or conf.suffix == ".toml":
+        return tomllib.load
+    else:
+        panic(
+            "An unrecognized error occurred while "
+            "determining the `conf` filetype."
+        )
 
 
-app()
+@curry
+def export(root: PurePath, track_: "Track") -> None:
+    path = track.path >> root >> track_
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "wb") as f:
+        track.export >> f >> track_
+
+
+if __name__ == "__main__":
+    arguably.run()
