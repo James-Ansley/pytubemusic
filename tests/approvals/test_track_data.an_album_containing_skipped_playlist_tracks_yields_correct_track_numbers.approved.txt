@@ -1,0 +1,16 @@
+(TrackData(metadata=Tags(title='Track 1'
+                         album='My Album'
+                         track=1),
+           cover='https://www.example.com/pic.jpeg',
+           track_parts=(PlaylistAudioData(url='www.example.com',
+                                          index=0,
+                                          start=None,
+                                          end=None),)),
+ TrackData(metadata=Tags(title='Track 2'
+                         album='My Album'
+                         track=2),
+           cover='https://www.example.com/pic.jpeg',
+           track_parts=(PlaylistAudioData(url='www.example.com',
+                                          index=2,
+                                          start=None,
+                                          end=None),)))
