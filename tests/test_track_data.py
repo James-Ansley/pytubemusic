@@ -1,7 +1,39 @@
 from datetime import timedelta
+from inspect import FrameInfo
+from pprint import pformat
+
+from approvaltests import StackFrameNamer, verify
+from approvaltests.pytest.pytest_config import PytestConfig
 
 from pytubemusic.model import *
 from utils import test
+
+
+# Hack to get around approvaltest test discovery
+# See: https://github.com/approvals/ApprovalTests.Python/issues/161
+def is_marked_with_test_dunder(
+      method_name: str,
+      frame_globals: dict[str, "Any"],
+) -> bool:
+    function = frame_globals.get(method_name)
+    return (
+          function is not None
+          and hasattr(function, "__test__")
+          and getattr(function, "__test__")
+    )
+
+
+def is_pytest_test(frame: FrameInfo) -> bool:
+    method_name = frame[3]
+    frame_globals = frame.frame.f_globals
+    patterns = PytestConfig.test_naming_patterns
+    return (
+          StackFrameNamer._is_match_for_pytest(method_name, patterns)
+          or is_marked_with_test_dunder(method_name, frame_globals)
+    )
+
+
+StackFrameNamer.is_pytest_test = is_pytest_test
 
 
 @test
@@ -298,7 +330,7 @@ def an_album_containing_a_single_track_type_can_be_flattened():
 
 @test
 def an_album_containing_multiple_tracks_can_be_flattened():
-    single_album = Album(
+    multi_track_album = Album(
         metadata=AlbumTags(album="My Album"),
         cover=File(path="/foo.png"),
         tracks=(
@@ -343,4 +375,24 @@ def an_album_containing_multiple_tracks_can_be_flattened():
             )
         ),
     )
-    assert tuple(TrackData.from_album(single_album)) == expect
+    assert tuple(TrackData.from_album(multi_track_album)) == expect
+
+
+@test
+def an_album_containing_skipped_playlist_tracks_yields_correct_track_numbers():
+    playlist_album = Album(
+        metadata=AlbumTags(album="My Album"),
+        cover=File(path="/foo.png"),
+        tracks=(
+            Playlist(
+                url="www.example.com",
+                cover=Url(href="www.example.com/pic.jpeg"),
+                tracks=(
+                    TrackStub(metadata=TrackTags(title="Track 1")),
+                    "DROP",
+                    TrackStub(metadata=TrackTags(title="Track 2")),
+                )
+            ),
+        )
+    )
+    verify(pformat(tuple(TrackData.from_album(playlist_album))))
