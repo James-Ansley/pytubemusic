@@ -2,7 +2,7 @@
 
 ## Notes for developers
 
-Installing this project as an editable project will only install the necessary
+Installing this project as an editable package will only install the necessary
 requirements to run the project. To install _all_ the requirements for
 development, run something like the following:
 

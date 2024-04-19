@@ -15,4 +15,4 @@ class Album(Model):
 
     metadata: AlbumTags
     cover: MaybeCover = None
-    tracks: tuple[Track, ...] = Field(min_items=1)
+    tracks: tuple[Track, ...] = Field(min_length=1)

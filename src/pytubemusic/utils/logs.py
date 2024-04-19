@@ -67,7 +67,7 @@ def on_enter[**P, R](
 
 
 def on_exit[**P, R](
-        msg: str | Callable[[R], str],
+        msg: str | Callable[[R, P], str],
         level: int = logging.INFO,
         logger: logging.Logger = LOGGER,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
@@ -86,7 +86,7 @@ def on_exit[**P, R](
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             result = func(*args, **kwargs)
-            message = msg(result) if isinstance(msg, Callable) else msg
+            message = msg(result, *args, **kwargs) if isinstance(msg, Callable) else msg
             logger.log(level, message)
             return result
 
@@ -95,10 +95,10 @@ def on_exit[**P, R](
     return decorator
 
 
-def on_error[**P, R, E: Exception](
-        msg: str | Callable[[E], str],
+def on_error[**P, R, E: type[Exception]](
+        msg: str | Callable[[E, P], str],
         level: int = logging.ERROR,
-        catch: type[E] = Exception,
+        catch: E | tuple[E, ...] = Exception,
         logger: logging.Logger = LOGGER,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
@@ -119,7 +119,7 @@ def on_error[**P, R, E: Exception](
             try:
                 return func(*args, **kwargs)
             except catch as e:
-                message = msg(e) if isinstance(msg, Callable) else msg
+                message = msg(e, *args, **kwargs) if isinstance(msg, Callable) else msg
                 logger.log(level, message)
                 raise e
 

@@ -63,11 +63,13 @@ class Tags(Model):
     artist_sort: MaybeStr = None
     title_sort: MaybeStr = None
 
-    def __add__(self, other):
-        return Tags(**(
-              {k: v for k, v in other.__dict__.items() if v is not None}
-              | {k: v for k, v in self.__dict__.items() if v is not None}
-        ))
+    def __add__(self, other: "Tags"):
+        return Tags(**(other.as_dict() | self.as_dict()))
+
+    def as_dict(self) -> dict[str, int | str]:
+        return {k: v for k, v in self.__dict__.items() if v is not None}
+
+
 
 
 class TrackTags(Tags):
