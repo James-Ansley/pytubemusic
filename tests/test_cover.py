@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from pytubemusic.model.cover import *
-from utils import test
+from .utils import test
 
 
 @test

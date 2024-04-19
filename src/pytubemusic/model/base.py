@@ -2,7 +2,7 @@ from datetime import timedelta
 from pathlib import PurePath
 from pprint import PrettyPrinter
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 
 __all__ = (
     "MaybeInt",
@@ -21,8 +21,10 @@ type MaybeTimedelta = timedelta | None
 
 
 class Model(BaseModel):
-    class Config:
-        extra = Extra.forbid
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
 
 
 # noinspection PyUnresolvedReferences,PyProtectedMember

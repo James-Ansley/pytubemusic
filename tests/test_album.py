@@ -4,7 +4,7 @@ from pydantic import ValidationError
 from pytest import raises
 
 from pytubemusic.model import *
-from utils import test
+from .utils import test
 
 
 @test

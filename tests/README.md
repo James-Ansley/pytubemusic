@@ -11,7 +11,7 @@ To enable diff checking on PyCharm, see
 which describes how to set up a run configuration which uses PyCharm's built-in
 diff checker.
 
-Example arguments/options for running the PyTest tests are:
+Your pytest arguments should look something like:
 
 ```
 --cov=../src \

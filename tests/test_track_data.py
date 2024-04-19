@@ -4,7 +4,7 @@ from pprint import pformat
 from approvaltests import verify
 
 from pytubemusic.model import *
-from utils import test
+from .utils import test
 
 
 @test

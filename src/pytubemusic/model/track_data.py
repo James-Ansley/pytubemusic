@@ -1,6 +1,6 @@
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Never, Self
+from typing import Self
 
 from .album import Album
 from .base import MaybeStr, MaybeTimedelta
@@ -10,23 +10,17 @@ from .track import *
 
 __all__ = ("TrackData", "AudioData", "PlaylistAudioData")
 
-
-def never(arg: Never) -> None:
-    raise RuntimeError(
-        "This function shouldn't be called. "
-        "It was given a value that should have been type Never:\n"
-        f"{arg}"
-    )
+from ..utils import never
 
 
-@dataclass
+@dataclass(frozen=True)
 class AudioData:
     url: str
     start: MaybeTimedelta = None
     end: MaybeTimedelta = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class PlaylistAudioData:
     url: str
     index: int
@@ -34,7 +28,7 @@ class PlaylistAudioData:
     end: MaybeTimedelta = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class TrackData:
     metadata: Tags
     cover: MaybeStr
