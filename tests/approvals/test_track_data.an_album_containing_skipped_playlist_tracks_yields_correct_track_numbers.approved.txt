@@ -2,7 +2,7 @@
                          album='My Album'
                          track=1),
            cover='https://www.example.com/pic.jpeg',
-           track_parts=(PlaylistAudioData(url='www.example.com',
+           track_parts=(PlaylistAudioData(url='www.example.com/playlist?list=123456789',
                                           index=0,
                                           start=None,
                                           end=None),)),
@@ -10,7 +10,7 @@
                          album='My Album'
                          track=2),
            cover='https://www.example.com/pic.jpeg',
-           track_parts=(PlaylistAudioData(url='www.example.com',
+           track_parts=(PlaylistAudioData(url='www.example.com/playlist?list=123456789',
                                           index=2,
                                           start=None,
                                           end=None),)))

@@ -10,23 +10,26 @@ from tests.utils import test
 @test
 def a_single_can_be_created_with_minimal_data():
     single = Single(
-        **{"url": "www.example.com", "metadata": {"title": "A Title"}}
+        **{
+            "url": "www.example.com/watch?v=987654321",
+            "metadata": {"title": "A Title"},
+        }
     )
-    expect = Single(url="www.example.com", metadata=TrackTags(title="A Title"))
+    expect = Single(url="www.example.com/watch?v=987654321", metadata=TrackTags(title="A Title"))
     assert single == expect
 
 
 @test
 def a_single_can_be_created_with_full_data():
     single = Single(**{
-        "url": "www.example.com",
+        "url": "www.example.com/watch?v=987654321",
         "metadata": {"title": "A Title"},
         "cover": {"path": "./cover.jpg"},
         "start": "00:00:01",
         "end": "00:07:02",
     })
     expect = Single(
-        url="www.example.com",
+        url="www.example.com/watch?v=987654321",
         metadata=TrackTags(title="A Title"),
         cover=File(path="./cover.jpg"),
         start=timedelta(seconds=1),
@@ -38,9 +41,9 @@ def a_single_can_be_created_with_full_data():
 @test
 def split_tracks_cannot_be_created_with_zero_tracks():
     with raises(ValidationError):
-        Split(url="www.example.com", tracks=())
+        Split(url="www.example.com/watch?v=987654321", tracks=())
     Split(
-        url="www.example.com",
+        url="www.example.com/watch?v=987654321",
         tracks=(TrackStub(metadata=TrackTags(title="Title")),),
     )
 
@@ -48,11 +51,11 @@ def split_tracks_cannot_be_created_with_zero_tracks():
 @test
 def a_split_track_can_be_created_with_minimal_data():
     split = Split(**{
-        "url": "www.example.com",
+        "url": "www.example.com/watch?v=987654321",
         "tracks": [{"metadata": {"title": "My Title"}}],
     })
     expect = Split(
-        url="www.example.com",
+        url="www.example.com/watch?v=987654321",
         tracks=(TrackStub(metadata=TrackTags(title="My Title")),)
     )
     assert split == expect
@@ -61,7 +64,7 @@ def a_split_track_can_be_created_with_minimal_data():
 @test
 def a_split_track_can_be_created_with_full_data():
     split = Split(**{
-        "url": "www.example.com",
+        "url": "www.example.com/watch?v=987654321",
         "cover": {"href": "www.example.com/pic.jpeg"},
         "tracks": [
             {
@@ -82,7 +85,7 @@ def a_split_track_can_be_created_with_full_data():
         ]
     })
     expect = Split(
-        url="www.example.com",
+        url="www.example.com/watch?v=987654321",
         cover=Url(href="www.example.com/pic.jpeg"),
         tracks=(
             TrackStub(
@@ -107,14 +110,14 @@ def a_split_track_can_be_created_with_full_data():
 
 @test
 def a_playlist_can_be_created_with_minimal_data():
-    playlist = Playlist(**{"url": "www.example.com"})
-    assert playlist == Playlist(url="www.example.com")
+    playlist = Playlist(**{"url": "www.example.com/playlist?list="})
+    assert playlist == Playlist(url="www.example.com/playlist?list=")
 
 
 @test
 def a_playlist_can_be_created_with_full_data():
     playlist = Playlist(**{
-        "url": "www.example.com",
+        "url": "www.example.com/playlist?list=",
         "cover": {"href": "www.example.com/pic.jpeg"},
         "tracks": (
             {
@@ -131,7 +134,7 @@ def a_playlist_can_be_created_with_full_data():
         )
     })
     expect = Playlist(
-        url="www.example.com",
+        url="www.example.com/playlist?list=",
         cover=Url(href="www.example.com/pic.jpeg"),
         tracks=(
             TrackStub(
@@ -153,10 +156,10 @@ def a_playlist_can_be_created_with_full_data():
 @test
 def a_merge_playlist_can_be_created_with_minimal_data():
     playlist = MergePlaylist(**{
-        "url": "www.example.com", "metadata": {"title": "Foo"},
+        "url": "www.example.com/playlist?list=", "metadata": {"title": "Foo"},
     })
     expect = MergePlaylist(
-        url="www.example.com",
+        url="www.example.com/playlist?list=",
         metadata=TrackTags(title="Foo"),
     )
     assert playlist == expect
@@ -165,7 +168,7 @@ def a_merge_playlist_can_be_created_with_minimal_data():
 @test
 def a_merge_playlist_can_be_created_with_full_data():
     playlist = MergePlaylist(**{
-        "url": "www.example.com",
+        "url": "www.example.com/playlist?list=",
         "metadata": {"title": "My Track"},
         "cover": {"href": "www.example.com/pic.jpeg"},
         "tracks": (
@@ -175,7 +178,7 @@ def a_merge_playlist_can_be_created_with_full_data():
         )
     })
     expect = MergePlaylist(
-        url="www.example.com",
+        url="www.example.com/playlist?list=",
         metadata=TrackTags(title="My Track"),
         cover=Url(href="www.example.com/pic.jpeg"),
         tracks=(
@@ -197,11 +200,11 @@ def a_merge_playlist_can_be_created_with_full_data():
 def a_merge_can_be_created_with_minimal_data():
     merge = Merge(**{
         "metadata": {"title": "Merged"},
-        "tracks": ({"url": "www.example.com"},)
+        "tracks": ({"url": "www.example.com/watch?v="},)
     })
     expect = Merge(
         metadata=TrackTags(title="Merged"),
-        tracks=(AudioStub(url="www.example.com"),),
+        tracks=(AudioStub(url="www.example.com/watch?v="),),
     )
     assert merge == expect
 
@@ -212,17 +215,17 @@ def a_merge_can_be_created_with_full_data():
         "metadata": {"title": "Merged"},
         "tracks": (
             {
-                "url": "www.example.com/1",
+                "url": "www.example.com/watch?v=123456789",
                 "start": "00:00:01",
                 "end": "00:01:23",
             },
             {
-                "url": "www.example.com/2",
+                "url": "www.example.com/watch?v=987654321",
                 "start": "00:04:56",
                 "end": "00:05:55",
             },
             {
-                "url": "www.example.com/3",
+                "url": "www.example.com/watch?v=111111111",
                 "start": "00:05:56",
                 "end": "00:10:10",
             },
@@ -232,17 +235,17 @@ def a_merge_can_be_created_with_full_data():
         metadata=TrackTags(title="Merged"),
         tracks=(
             AudioStub(
-                url="www.example.com/1",
+                url="www.example.com/watch?v=123456789",
                 start=timedelta(seconds=1),
                 end=timedelta(minutes=1, seconds=23),
             ),
             AudioStub(
-                url="www.example.com/2",
+                url="www.example.com/watch?v=987654321",
                 start=timedelta(minutes=4, seconds=56),
                 end=timedelta(minutes=5, seconds=55),
             ),
             AudioStub(
-                url="www.example.com/3",
+                url="www.example.com/watch?v=111111111",
                 start=timedelta(minutes=5, seconds=56),
                 end=timedelta(minutes=10, seconds=10),
             ),

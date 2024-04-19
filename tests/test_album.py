@@ -18,13 +18,13 @@ def an_album_can_be_created_from_minimal_data():
     album = Album(**{
         "metadata": {"album": "My Album"},
         "tracks": (
-            {"url": "www.example.com", "metadata": {"title": "My Track"}},
+            {"url": "www.example.com/watch?v=987654321", "metadata": {"title": "My Track"}},
         )
     })
     expect = Album(
         metadata=AlbumTags(album="My Album"),
         tracks=(
-            Single(url="www.example.com", metadata=TrackTags(title="My Track")),
+            Single(url="www.example.com/watch?v=987654321", metadata=TrackTags(title="My Track")),
         )
     )
     assert album == expect
@@ -36,19 +36,19 @@ def an_album_can_be_created_from_full_data():
         "metadata": {"album": "My Album"},
         "cover": {"path": "/foo.jpeg"},
         "tracks": (
-            {"url": "www.example.com", "metadata": {"title": "My Track"}},
+            {"url": "www.example.com/watch?v=987654321", "metadata": {"title": "My Track"}},
             {
-                "url": "www.example.com",
+                "url": "www.example.com/watch?v=987654321",
                 "tracks": ({"metadata": {"title": "My Track 2"}},),
             },
             {
-                "url": "www.example.com",
+                "url": "www.example.com/playlist?list=",
                 "metadata": {"title": "My Track 2.5"},
                 "tracks": ({"start": "00:00:01"},),
             },
             {
                 "metadata": {"title": "My Track 3"},
-                "tracks": ({"url": "www.example.com"},)
+                "tracks": ({"url": "www.example.com/watch?v=987654321"},)
             },
         )
     })
@@ -56,19 +56,19 @@ def an_album_can_be_created_from_full_data():
         metadata=AlbumTags(album="My Album"),
         cover=File(path="/foo.jpeg"),
         tracks=(
-            Single(url="www.example.com", metadata=TrackTags(title="My Track")),
+            Single(url="www.example.com/watch?v=987654321", metadata=TrackTags(title="My Track")),
             Split(
-                url="www.example.com",
+                url="www.example.com/watch?v=987654321",
                 tracks=(TrackStub(metadata=TrackTags(title="My Track 2")),),
             ),
             MergePlaylist(
-                url="www.example.com",
+                url="www.example.com/playlist?list=",
                 metadata=TrackTags(title="My Track 2.5"),
                 tracks=(TimeStub(start=timedelta(seconds=1)),)
             ),
             Merge(
                 metadata=TrackTags(title="My Track 3"),
-                tracks=(AudioStub(url="www.example.com"),)
+                tracks=(AudioStub(url="www.example.com/watch?v=987654321"),)
             )
         )
     )
