@@ -11,14 +11,10 @@ To enable diff checking on PyCharm, see
 which describes how to set up a run configuration which uses PyCharm's built-in
 diff checker.
 
+The working directory of the tests should be set to be the `tests/` directory.
 Your pytest arguments should look something like:
 
 ```
---cov=../src \
---cov-report=html \
 --approvaltests-add-reporter-args='diff' \
 --approvaltests-add-reporter='/Applications/PyCharm.app/Contents/MacOS/pycharm'
 ```
-
-It is assumed the working directory of the tests is set to be the `tests/`
-directory.

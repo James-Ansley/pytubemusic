@@ -1,65 +1,51 @@
-from functools import reduce
-from logging import ERROR
-from operator import add
+import functools
+from io import BytesIO
 from typing import IO
 
 from pydub import AudioSegment
+from pytube import Playlist, YouTube
 
-from pytubemusic.model import *
-from pytubemusic.streams import *
-from pytubemusic.utils import *
+from pytubemusic.model.track import AudioData, PlaylistAudioData
+from .utils import stream
+from ..logging import log
+from ..model.audio import RawAudio
 
-__all__ = ("export_track",)
 
-
-@panic_on_error(lambda err, _, track: f"An error occurred when exporting"
-                                      f" track: {track.metadata.title}")
-@on_enter(lambda _, track: f"Exporting track: {track.metadata.title}")
-@on_exit(lambda r, _, track: f"Exported track: {track.metadata.title}")
-@on_error(
-    lambda err, _, track: f"Unable to export track "
-                          f"`{track.metadata.title}`: {err}",
-    level=ERROR,
-)
-def export_track(f: IO, track: TrackData) -> None:
-    audio = reduce(add, (load_track_part(part) for part in track.track_parts))
-    # cover cannot be inlined to prevent garbage collection of the named
-    # file before export
-    cover = load_cover(track)
-    bitrate = get_bitrate(track)
-    LOGGER.info(f"Writing to file: {track.metadata.title}")
-    audio.export(
-        f,
-        format="mp3",
-        tags=track.metadata.as_dict(),
-        parameters=["-b:a", f"{bitrate}"],
-        cover=cover.name
+def fetch_audio_data(audio_data: AudioData | PlaylistAudioData) -> RawAudio:
+    url = fetch_video_url(audio_data)
+    log(f"Processing audio from: {url}")
+    buffer, bitrate = audio(url)
+    return RawAudio(
+        segment=AudioSegment.from_file(
+            buffer,
+            start_second=audio_data.start_second(),
+            duration=audio_data.duration_seconds(),
+        ),
+        bit_rate=bitrate,
     )
-    LOGGER.debug(f"Finished writing to file: {track.metadata.title}")
 
 
-def load_track_part(track_part: AudioData | PlaylistAudioData) -> AudioSegment:
-    match track_part:
-        case AudioData(url, start, end):
-            audio = get_audio_stream(url)
-            return audio[to_milliseconds(start):to_milliseconds(end)]
-        case PlaylistAudioData(url, index, start, end):
-            playlist_urls = get_playlist_urls(url)
-            audio = get_audio_stream(playlist_urls[index])
-            return audio[to_milliseconds(start):to_milliseconds(end)]
-        case _:
-            never(track_part)
+def audio(url) -> tuple[IO, int]:
+    buffer, bitrate = _cached_audio_helper(url)
+    return BytesIO(buffer), bitrate
 
 
-def to_milliseconds(maybe_timedelta: MaybeTimedelta) -> MaybeInt:
-    if maybe_timedelta is not None:
-        return int(maybe_timedelta.total_seconds() * 1000)
-    else:
-        return None
+@functools.lru_cache(maxsize=1)
+def _cached_audio_helper(url) -> tuple[bytes, int]:
+    log(f"Fetching audio from: {url}")
+    with stream(BytesIO()) as buffer:
+        raw_audio = YouTube(url).streams.get_audio_only()
+        raw_audio.stream_to_buffer(buffer)
+    return buffer.read(), raw_audio.bitrate
 
 
-def load_cover(track: TrackData) -> "NamedTemporaryFile | None":
-    if track.cover is None:
-        return as_named_temp_file(load_uri(cover_photo_url(track)), ".jpg")
-    else:
-        return as_named_temp_file(load_uri(track.cover), ".jpg")
+def fetch_video_url(audio_data: AudioData | PlaylistAudioData) -> str:
+    match audio_data:
+        case AudioData(url):
+            return url
+        case PlaylistAudioData(url, index):
+            return fetch_playlist_video_url(url, index)
+
+
+def fetch_playlist_video_url(playlist_url, index) -> str:
+    return Playlist(playlist_url).video_urls[index]

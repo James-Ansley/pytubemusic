@@ -1,0 +1,51 @@
+Album(metadata=AlbumTags(album='My Album Title')
+      cover=File(path=PosixPath('data/picA.jpeg'))
+      tracks=(Single(url='www.example.com/watch?v='
+                     metadata=TrackTags(title='My Track Title')
+                     cover=File(path=PosixPath('data/pic.jpeg'))
+                     start=datetime.timedelta(seconds=1, microseconds=500000)
+                     end=datetime.timedelta(seconds=201)),
+              Split(url='www.example.com/watch?v='
+                    cover=Url(href='www.example.com/pic1.jpeg')
+                    tracks=(TrackStub(metadata=TrackTags(title='My First Track '
+                                                               'Title')
+                                      cover=Url(href='www.example.com/pic2.jpeg')
+                                      start=datetime.timedelta(seconds=1, microseconds=500000)
+                                      end=datetime.timedelta(seconds=2601)),
+                            TrackStub(metadata=TrackTags(title='My Second '
+                                                               'Track Title')
+                                      start=datetime.timedelta(seconds=12, microseconds=300000)
+                                      end=datetime.timedelta(seconds=2601)))),
+              Playlist(url='www.example.com/playlist?list='
+                       cover=Url(href='www.example.com/pic1.jpeg')
+                       tracks=(TrackStub(metadata=TrackTags(title='My Track '
+                                                                  'Title')
+                                         cover=Url(href='www.example.com/pic2.jpeg')
+                                         start=datetime.timedelta(seconds=1, microseconds=500000)
+                                         end=datetime.timedelta(seconds=2601)),
+                               Drop(drop=True),
+                               TrackStub(metadata=TrackTags(title='My Other '
+                                                                  'Track '
+                                                                  'Title')
+                                         end=datetime.timedelta(seconds=2601)))),
+              Merge(metadata=TrackTags(title='My Track Title')
+                    cover=Url(href='www.example.com/pic1.jpeg')
+                    parts=(AudioStub(url='www.example.com/watch?v='),
+                           AudioStub(url='www.example.com/watch?v='
+                                     start=datetime.timedelta(seconds=1, microseconds=500000)
+                                     end=datetime.timedelta(seconds=2601)))),
+              Playlist(url='www.example.com/playlist?list='
+                       cover=Url(href='www.example.com/pic1.jpeg')
+                       tracks=(MergeStub(metadata=TrackTags(title='My Track '
+                                                                  'Title')
+                                         cover=Url(href='www.example.com/pic2.jpeg')
+                                         parts=(TimeStub(start=datetime.timedelta(seconds=1, microseconds=500000)
+                                                         end=datetime.timedelta(seconds=2601)),
+                                                Drop(drop=True),
+                                                TimeStub(start=datetime.timedelta(seconds=1)),
+                                                TimeStub(start=None, end=None))),
+                               Drop(drop=True),
+                               TrackStub(metadata=TrackTags(title='My Other '
+                                                                  'Track '
+                                                                  'Title')
+                                         end=datetime.timedelta(seconds=2601))))))

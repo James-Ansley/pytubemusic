@@ -1,0 +1,6 @@
+Merge(metadata=TrackTags(title='My Track Title')
+      cover=Url(href='www.example.com/pic1.jpeg')
+      parts=(AudioStub(url='www.example1.com/watch?v=', start=None, end=None),
+             AudioStub(url='www.example2.com/watch?v='
+                       start=datetime.timedelta(seconds=1, microseconds=500000)
+                       end=datetime.timedelta(seconds=2601))))

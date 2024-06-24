@@ -1,0 +1,71 @@
+(TrackData(metadata=Tags(title='My Track Title'
+                         album='My Album Title'
+                         track=1),
+           cover=File(path=PosixPath('data/pic.jpeg')),
+           parts=[AudioData(url='www.example.com/watch?v=',
+                            start=datetime.timedelta(seconds=1, microseconds=500000),
+                            end=datetime.timedelta(seconds=201))]),
+ TrackData(metadata=Tags(title='My First Track Title'
+                         album='My Album Title'
+                         track=2),
+           cover=Url(href='www.example.com/pic2.jpeg'),
+           parts=[AudioData(url='www.example.com/watch?v=',
+                            start=datetime.timedelta(seconds=1, microseconds=500000),
+                            end=datetime.timedelta(seconds=2601))]),
+ TrackData(metadata=Tags(title='My Second Track Title'
+                         album='My Album Title'
+                         track=3),
+           cover=Url(href='www.example.com/pic1.jpeg'),
+           parts=[AudioData(url='www.example.com/watch?v=',
+                            start=datetime.timedelta(seconds=12, microseconds=300000),
+                            end=datetime.timedelta(seconds=2601))]),
+ TrackData(metadata=Tags(title='My Track Title'
+                         album='My Album Title'
+                         track=4),
+           cover=Url(href='www.example.com/pic2.jpeg'),
+           parts=[PlaylistAudioData(url='www.example.com/playlist?list=',
+                                    index=0,
+                                    start=datetime.timedelta(seconds=1, microseconds=500000),
+                                    end=datetime.timedelta(seconds=2601))]),
+ TrackData(metadata=Tags(title='My Other Track Title'
+                         album='My Album Title'
+                         track=5),
+           cover=Url(href='www.example.com/pic1.jpeg'),
+           parts=[PlaylistAudioData(url='www.example.com/playlist?list=',
+                                    index=2,
+                                    start=None,
+                                    end=datetime.timedelta(seconds=2601))]),
+ TrackData(metadata=Tags(title='My Track Title'
+                         album='My Album Title'
+                         track=6),
+           cover=Url(href='www.example.com/pic1.jpeg'),
+           parts=[AudioData(url='www.example.com/watch?v=',
+                            start=None,
+                            end=None),
+                  AudioData(url='www.example.com/watch?v=',
+                            start=datetime.timedelta(seconds=1, microseconds=500000),
+                            end=datetime.timedelta(seconds=2601))]),
+ TrackData(metadata=Tags(title='My Track Title'
+                         album='My Album Title'
+                         track=7),
+           cover=Url(href='www.example.com/pic2.jpeg'),
+           parts=[PlaylistAudioData(url='www.example.com/playlist?list=',
+                                    index=0,
+                                    start=datetime.timedelta(seconds=1, microseconds=500000),
+                                    end=datetime.timedelta(seconds=2601)),
+                  PlaylistAudioData(url='www.example.com/playlist?list=',
+                                    index=2,
+                                    start=datetime.timedelta(seconds=1),
+                                    end=None),
+                  PlaylistAudioData(url='www.example.com/playlist?list=',
+                                    index=3,
+                                    start=None,
+                                    end=None)]),
+ TrackData(metadata=Tags(title='My Other Track Title'
+                         album='My Album Title'
+                         track=8),
+           cover=Url(href='www.example.com/pic1.jpeg'),
+           parts=[PlaylistAudioData(url='www.example.com/playlist?list=',
+                                    index=5,
+                                    start=None,
+                                    end=datetime.timedelta(seconds=2601))]))

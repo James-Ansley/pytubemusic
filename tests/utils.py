@@ -1,8 +1,14 @@
+import tomllib
+from collections.abc import Callable, Iterable
 from inspect import FrameInfo
+from pathlib import Path
 from types import FunctionType
+from typing import Any
 
+import pytest
 from approvaltests import StackFrameNamer
 from approvaltests.pytest.pytest_config import PytestConfig
+from pytest import MonkeyPatch
 
 
 # Hack to get around approvaltest test discovery
@@ -30,6 +36,19 @@ StackFrameNamer._is_marked_with_test_dunder = _is_marked_with_test_dunder
 StackFrameNamer.is_pytest_test = is_pytest_test
 
 
-def test[T: FunctionType](f: T) -> T:
-    setattr(f, "__test__", True)
-    return f
+def test[T: FunctionType](
+      depends_on: Iterable[str] = (),
+      scope: str = "module",
+) -> Callable[[T], T]:
+    def wrapper[T: FunctionType](f: T) -> T:
+        f = pytest.mark.dependency(depends=depends_on, scope=scope)(f)
+        setattr(f, "__test__", True)
+        return f
+
+    return wrapper
+
+
+def load_toml(filename: str | Path) -> dict[str, Any]:
+    path = Path("resources", filename)
+    with open(path, "rb") as f:
+        return tomllib.load(f)

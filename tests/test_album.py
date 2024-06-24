@@ -1,75 +1,51 @@
-from datetime import timedelta
+from pprint import pformat
 
+from approvaltests import verify
 from pydantic import ValidationError
 from pytest import raises
 
-from pytubemusic.model import *
-from .utils import test
+from pytubemusic.model.user.album import Album
+from tests import test
+from tests.utils import load_toml
 
 
-@test
-def an_album_cannot_be_created_with_zero_tracks():
-    with raises(ValidationError):
-        Album(metadata=AlbumTags(album="My Album"))
+@test(
+    depends_on=(
+          "test_track.py::singles_can_be_created_with_full_data",
+          "test_tags.py::album_tags_can_be_created_with_minimal_data",
+    ),
+    scope="session"
+)
+def an_album_can_be_created_with_a_single():
+    data = load_toml("album_minimal.toml")
+    album = Album(**data)
+    assert isinstance(album, Album)
+    verify(pformat(album))
 
 
-@test
-def an_album_can_be_created_from_minimal_data():
-    album = Album(**{
-        "metadata": {"album": "My Album"},
-        "tracks": (
-            {"url": "www.example.com/watch?v=987654321", "metadata": {"title": "My Track"}},
-        )
-    })
-    expect = Album(
-        metadata=AlbumTags(album="My Album"),
-        tracks=(
-            Single(url="www.example.com/watch?v=987654321", metadata=TrackTags(title="My Track")),
-        )
-    )
-    assert album == expect
+@test(
+    depends_on=("test_tags.py::album_tags_can_be_created_with_minimal_data",),
+    scope="session",
+)
+def an_album_must_have_at_least_one_track():
+    data = {"metadata": {"album": "My Album Title"}, "tracks": []}
+    raises(ValidationError, lambda: Album(**data))
 
 
-@test
-def an_album_can_be_created_from_full_data():
-    album = Album(**{
-        "metadata": {"album": "My Album"},
-        "cover": {"path": "/foo.jpeg"},
-        "tracks": (
-            {"url": "www.example.com/watch?v=987654321", "metadata": {"title": "My Track"}},
-            {
-                "url": "www.example.com/watch?v=987654321",
-                "tracks": ({"metadata": {"title": "My Track 2"}},),
-            },
-            {
-                "url": "www.example.com/playlist?list=",
-                "metadata": {"title": "My Track 2.5"},
-                "tracks": ({"start": "00:00:01"},),
-            },
-            {
-                "metadata": {"title": "My Track 3"},
-                "tracks": ({"url": "www.example.com/watch?v=987654321"},)
-            },
-        )
-    })
-    expect = Album(
-        metadata=AlbumTags(album="My Album"),
-        cover=File(path="/foo.jpeg"),
-        tracks=(
-            Single(url="www.example.com/watch?v=987654321", metadata=TrackTags(title="My Track")),
-            Split(
-                url="www.example.com/watch?v=987654321",
-                tracks=(TrackStub(metadata=TrackTags(title="My Track 2")),),
-            ),
-            MergePlaylist(
-                url="www.example.com/playlist?list=",
-                metadata=TrackTags(title="My Track 2.5"),
-                tracks=(TimeStub(start=timedelta(seconds=1)),)
-            ),
-            Merge(
-                metadata=TrackTags(title="My Track 3"),
-                tracks=(AudioStub(url="www.example.com/watch?v=987654321"),)
-            )
-        )
-    )
-    assert album == expect
+@test(
+    depends_on=(
+          "test_track.py::singles_can_be_created_with_full_data",
+          "test_track.py::split_tracks_can_be_created_with_full_data",
+          "test_track.py::playlists_can_be_created_with_full_data",
+          "test_track.py::merge_tracks_can_be_created_with_full_data",
+          "test_cover.py::url_covers_can_be_created_with_a_hyperlink",
+          "test_cover.py::file_covers_can_be_created_with_a_path",
+          "test_tags.py::album_tags_can_be_created_with_minimal_data",
+    ),
+    scope="session",
+)
+def an_album_can_be_created_with_all_track_types():
+    data = load_toml("album_full.toml")
+    album = Album(**data)
+    assert isinstance(album, Album)
+    verify(pformat(album))

@@ -11,7 +11,10 @@ __all__ = (
     "on_error",
     "LogLevel",
     "setup_handler",
+    "log",
 )
+
+from types import MappingProxyType
 
 LOGGER = logging.getLogger("pytubemusic")
 
@@ -38,6 +41,10 @@ def setup_handler(
     logger.addHandler(handler)
 
 
+def log(message, level: int = logging.INFO, logger: logging.Logger = LOGGER):
+    logger.log(level, message)
+
+
 def on_enter[**P, R](
         msg: str | Callable[P, str],
         level: int = logging.INFO,
@@ -55,6 +62,7 @@ def on_enter[**P, R](
     """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
+
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             message = msg(*args, **kwargs) if isinstance(msg, Callable) else msg
@@ -83,8 +91,9 @@ def on_exit[**P, R](
     """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
+
         @functools.wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        def wrapper(*args, **kwargs) -> R:
             result = func(*args, **kwargs)
             message = msg(result, *args, **kwargs) if isinstance(msg, Callable) else msg
             logger.log(level, message)
@@ -114,8 +123,9 @@ def on_error[**P, R, E: type[Exception]](
     """
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
+
         @functools.wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        def wrapper(*args, **kwargs) -> R:
             try:
                 return func(*args, **kwargs)
             except catch as e:

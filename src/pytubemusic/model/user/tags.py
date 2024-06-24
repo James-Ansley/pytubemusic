@@ -1,17 +1,18 @@
-from .base import MaybeInt, MaybeStr, Model
+from pytubemusic.model.types import MaybeStr, MaybeInt
+from .base import Model
 
 __all__ = (
     "Tags",
     "TrackTags",
     "AlbumTags",
+    "MaybeTags",
     "MaybeTrackTags",
     "MaybeAlbumTags",
-    "MaybeTags",
 )
 
+type MaybeTags = Tags | None
 type MaybeTrackTags = TrackTags | None
 type MaybeAlbumTags = AlbumTags | None
-type MaybeTags = Tags | None
 
 
 class Tags(Model):
@@ -63,13 +64,11 @@ class Tags(Model):
     artist_sort: MaybeStr = None
     title_sort: MaybeStr = None
 
-    def __add__(self, other: "Tags"):
+    def __add__(self, other: "Tags") -> "Tags":
         return Tags(**(other.as_dict() | self.as_dict()))
 
     def as_dict(self) -> dict[str, int | str]:
         return {k: v for k, v in self.__dict__.items() if v is not None}
-
-
 
 
 class TrackTags(Tags):

@@ -1,4 +1,6 @@
-pytest~=8.0.0
-pytest-cov~=5.0.0
+approvaltests~=12.2.0
+pytest~=8.2.2
 pytest-approvaltests~=0.2.4
-approvaltests~=11.2.1
+pytest-cov~=5.0.0
+pytest-dependency~=0.6.0
+pytest-order~=1.2.1

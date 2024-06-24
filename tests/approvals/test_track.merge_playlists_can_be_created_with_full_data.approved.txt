@@ -1,0 +1,7 @@
+MergePlaylist(url='www.example.com/playlist?list='
+              metadata=TrackTags(title='My Track Title')
+              cover=Url(href='www.example.com/pic1.jpeg')
+              tracks=(TimeStub(start=datetime.timedelta(seconds=1, microseconds=500000)
+                               end=datetime.timedelta(seconds=2601)),
+                      Drop(drop=True),
+                      TimeStub(end=datetime.timedelta(seconds=2601))))

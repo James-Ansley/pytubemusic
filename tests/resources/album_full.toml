@@ -1,0 +1,95 @@
+[metadata]
+album = "My Album Title"
+
+[cover]
+path = "data/picA.jpeg"
+
+# Single
+[[tracks]]
+url = "www.example.com/watch?v="
+start = "00:00:01.5"
+end = "00:03:21.0"
+
+[tracks.metadata]
+title = "My Track Title"
+
+[tracks.cover]
+path = "data/pic.jpeg"
+
+# Split
+[[tracks]]
+url = "www.example.com/watch?v="
+cover = { href = "www.example.com/pic1.jpeg" }
+
+[[tracks.tracks]]
+metadata = { title = "My First Track Title" }
+cover = { href = "www.example.com/pic2.jpeg" }
+start = "00:00:01.5"
+end = "00:43:21"
+
+[[tracks.tracks]]
+metadata = { title = "My Second Track Title" }
+start = "00:00:12.3"
+end = "00:43:21.0"
+
+
+# Playlist
+[[tracks]]
+url = "www.example.com/playlist?list="
+cover = { href = "www.example.com/pic1.jpeg" }
+
+[[tracks.tracks]]
+metadata = { title = "My Track Title" }
+cover = { href = "www.example.com/pic2.jpeg" }
+start = "00:00:01.5"
+end = "00:43:21"
+
+[[tracks.tracks]]
+drop = true
+
+[[tracks.tracks]]
+metadata = { title = "My Other Track Title" }
+end = "00:43:21"
+
+
+# Merge
+[[tracks]]
+metadata = { "title" = "My Track Title" }
+cover = { "href" = "www.example.com/pic1.jpeg" }
+
+[[tracks.parts]]
+url = "www.example.com/watch?v="
+
+[[tracks.parts]]
+url = "www.example.com/watch?v="
+start = "00:00:01.5"
+end = "00:43:21"
+
+
+# Playlist with merge
+[[tracks]]
+url = "www.example.com/playlist?list="
+cover = { href = "www.example.com/pic1.jpeg" }
+
+[[tracks.tracks]]
+metadata = { title = "My Track Title" }
+cover = { href = "www.example.com/pic2.jpeg" }
+
+[[tracks.tracks.parts]]
+start = "00:00:01.5"
+end = "00:43:21"
+
+[[tracks.tracks.parts]]
+drop = true
+
+[[tracks.tracks.parts]]
+start = "00:00:01"
+
+[[tracks.tracks.parts]]
+
+[[tracks.tracks]]
+drop = true
+
+[[tracks.tracks]]
+metadata = { title = "My Other Track Title" }
+end = "00:43:21"

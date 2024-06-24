@@ -1,0 +1,8 @@
+TrackTags(title='My Track Title'
+          genre='Modern')
+
+AlbumTags(album='My Album Title'
+          genre='Jazz')
+
+Tags(title='FooBar'
+     genre='Classical')

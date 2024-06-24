@@ -1,0 +1,5 @@
+Single(url='www.example.com/watch?v='
+       metadata=TrackTags(title='My Track Title')
+       cover=File(path=PosixPath('data/pic.jpeg'))
+       start=datetime.timedelta(seconds=1, microseconds=500000)
+       end=datetime.timedelta(seconds=201))

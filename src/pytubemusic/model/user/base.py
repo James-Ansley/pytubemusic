@@ -1,23 +1,8 @@
-from datetime import timedelta
-from pathlib import PurePath
 from pprint import PrettyPrinter
 
 from pydantic import BaseModel, ConfigDict
 
-__all__ = (
-    "MaybeInt",
-    "MaybeFloat",
-    "MaybeStr",
-    "MaybePath",
-    "MaybeTimedelta",
-    "Model",
-)
-
-type MaybeInt = int | None
-type MaybeFloat = float | None
-type MaybeStr = str | None
-type MaybePath = PurePath | None
-type MaybeTimedelta = timedelta | None
+__all__ = ("Model",)
 
 
 class Model(BaseModel):

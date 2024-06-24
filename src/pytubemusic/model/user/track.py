@@ -3,25 +3,34 @@ Data types for collections of tracks
 """
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, RootModel
 
-from .base import MaybeTimedelta, Model
+from pytubemusic.model.types import MaybeTimedelta
+from .base import Model
 from .cover import MaybeCover
 from .tags import TrackTags
 
 __all__ = (
     "Track",
+    "TrackType",
     "Single",
     "Split",
     "Playlist",
-    "MergePlaylist",
     "Merge",
     "TrackStub",
     "AudioStub",
     "TimeStub",
+    "MergeStub",
+    "Drop",
 )
 
-type Track = Single | Split | Playlist | MergePlaylist | Merge
+type TrackType = Single | Split | Playlist | Merge
+
+
+class Track:
+    def __new__(cls, **kwargs) -> TrackType:
+        # noinspection PyTypeChecker
+        return RootModel[TrackType](**kwargs).root
 
 
 class Single(Model):
@@ -39,11 +48,18 @@ class Single(Model):
 class TrackStub(Model):
     """A track that exists as a segment of a larger track"""
 
-    __match_args__ = ("metadata", "start", "end")
+    __match_args__ = ("metadata", "cover", "start", "end")
 
     metadata: TrackTags
+    cover: MaybeCover = None
     start: MaybeTimedelta = None
     end: MaybeTimedelta = None
+
+
+class Drop(Model):
+    __match_args__ = ("drop",)
+
+    drop: Literal[True] = True
 
 
 class AudioStub(Model):
@@ -65,6 +81,16 @@ class TimeStub(Model):
     end: MaybeTimedelta = None
 
 
+class MergeStub(Model):
+    """Multiple time stamps clamped into one"""
+
+    __match_args__ = ("metadata", "cover", "parts")
+
+    metadata: TrackTags
+    cover: MaybeCover = None
+    parts: tuple[TimeStub | Drop, ...]
+
+
 class Split(Model):
     """A single track that is split into smaller individual tracks"""
 
@@ -82,18 +108,7 @@ class Playlist(Model):
 
     url: str = Field(pattern=r"/playlist\?list=")
     cover: MaybeCover = None
-    tracks: tuple[TrackStub | Literal["DROP"], ...] | None = None
-
-
-class MergePlaylist(Model):
-    """Playlist tracks combined into one"""
-
-    __match_args__ = ("url", "metadata", "cover", "tracks")
-
-    url: str = Field(pattern=r"/playlist\?list=")
-    metadata: TrackTags
-    cover: MaybeCover = None
-    tracks: tuple[TimeStub | Literal["DROP"], ...] | None = None
+    tracks: tuple[TrackStub | MergeStub | Drop, ...] = ()
 
 
 class Merge(Model):
@@ -103,4 +118,4 @@ class Merge(Model):
 
     metadata: TrackTags
     cover: MaybeCover = None
-    tracks: tuple[AudioStub, ...] = Field(min_length=1)
+    parts: tuple[AudioStub, ...] = Field(min_length=1)

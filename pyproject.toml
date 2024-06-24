@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytubemusic"
-version = "0.4.0"
+version = "0.5.0"
 description = "A cli that may or may not download albums from a certain website"
 
 readme = "README.md"
@@ -24,12 +24,5 @@ repository = "https://github.com/James-Ansley/pytubemusic"
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
 [project.scripts]
-pytubemusic = "pytubemusic:__main__"
-
-[tool.pytest.ini_options]
-python_classes = "~"
-python_functions = "~"
+pytubemusic = "pytubemusic:__main__.run"

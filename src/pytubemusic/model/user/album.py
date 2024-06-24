@@ -3,7 +3,7 @@ from pydantic import Field
 from .base import Model
 from .cover import MaybeCover
 from .tags import AlbumTags
-from .track import *
+from .track import TrackType
 
 __all__ = ("Album",)
 
@@ -15,4 +15,4 @@ class Album(Model):
 
     metadata: AlbumTags
     cover: MaybeCover = None
-    tracks: tuple[Track, ...] = Field(min_length=1)
+    tracks: tuple[TrackType, ...] = Field(min_length=1)

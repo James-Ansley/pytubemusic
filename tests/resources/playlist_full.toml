@@ -1,0 +1,15 @@
+url = "www.example.com/playlist?list="
+cover = { href = "www.example.com/pic1.jpeg" }
+
+[[tracks]]
+metadata = { title = "My Track Title" }
+cover = { href = "www.example.com/pic2.jpeg" }
+start = "00:00:01.5"
+end = "00:43:21"
+
+[[tracks]]
+drop = true
+
+[[tracks]]
+metadata = { title = "My Other Track Title" }
+end = "00:43:21"

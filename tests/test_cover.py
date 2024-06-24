@@ -1,20 +1,36 @@
 from pathlib import Path
+from pprint import pformat
 
-from pytubemusic.model.cover import *
-from .utils import test
+from approvaltests import verify
 
-
-@test
-def a_url_cover_will_convert_to_a_uri():
-    cover1 = Url(href="www.example.com")
-    cover2 = Url(href="http://www.example.com")
-    assert cover1.as_uri() == "https://www.example.com"
-    assert cover2.as_uri() == "http://www.example.com"
+from pytubemusic.model.user.cover import File, Url
+from tests import test
 
 
-@test
-def a_file_cover_will_convert_to_a_uri():
-    file1 = File(path=Path("/foo.txt"))
-    file2 = File(path=Path("/bar/foo.txt"))
-    assert file1.as_uri() == "file:///foo.txt"
-    assert file2.as_uri() == "file:///bar/foo.txt"
+@test()
+def url_covers_can_be_created_with_a_hyperlink():
+    data = {"href": "www.example.com/pic1.jpeg"}
+    cover = Url(**data)
+    assert isinstance(cover, Url)
+    assert cover.href == data["href"]
+
+
+@test()
+def file_covers_can_be_created_with_a_path():
+    data = {"path": "data/pic1.jpeg"}
+    cover = File(**data)
+    assert isinstance(cover, File)
+    assert cover.path == Path("data/pic1.jpeg")
+
+
+@test(
+    depends_on=(
+          "url_covers_can_be_created_with_a_hyperlink",
+          "file_covers_can_be_created_with_a_path",
+    )
+)
+def covers_can_be_pretty_printed():
+    cover1 = Url(**{"href": "www.example.com/pic1.jpeg"})
+    cover2 = File(**{"path": "data/pic1.jpeg"})
+    cover_fmt = "\n\n".join(pformat(tag) for tag in (cover1, cover2))
+    verify(cover_fmt)

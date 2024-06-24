@@ -1,0 +1,4 @@
+Playlist(url='www.example.com/playlist?list='
+         tracks=(TrackStub(metadata=TrackTags(title='My Track Title')),
+                 Drop(drop=True),
+                 TrackStub(metadata=TrackTags(title='My Other Track Title'))))

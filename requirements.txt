@@ -1,6 +1,4 @@
-arguably~=1.2.5
-pipe-utils~=0.4.0
-pydub~=0.25.0
-python-cowsay~=1.0.0
 pytube~=15.0.0
-pydantic~=2.6.0
+pydantic~=2.7.3
+pydub~=0.25.1
+arguably~=1.3.0

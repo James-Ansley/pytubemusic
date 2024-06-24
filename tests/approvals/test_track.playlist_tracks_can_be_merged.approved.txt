@@ -1,0 +1,12 @@
+Playlist(url='www.example.com/playlist?list='
+         cover=Url(href='www.example.com/pic1.jpeg')
+         tracks=(MergeStub(metadata=TrackTags(title='My Track Title')
+                           cover=Url(href='www.example.com/pic2.jpeg')
+                           parts=(TimeStub(start=datetime.timedelta(seconds=1, microseconds=500000)
+                                           end=datetime.timedelta(seconds=2601)),
+                                  Drop(drop=True),
+                                  TimeStub(start=datetime.timedelta(seconds=1)),
+                                  TimeStub(start=None, end=None))),
+                 Drop(drop=True),
+                 TrackStub(metadata=TrackTags(title='My Other Track Title')
+                           end=datetime.timedelta(seconds=2601))))

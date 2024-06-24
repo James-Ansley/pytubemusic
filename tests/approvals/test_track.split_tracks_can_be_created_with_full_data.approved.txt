@@ -1,0 +1,8 @@
+Split(url='www.example.com/watch?v='
+      cover=Url(href='www.example.com/pic1.jpeg')
+      tracks=(TrackStub(metadata=TrackTags(title='My First Track Title')
+                        cover=Url(href='www.example.com/pic2.jpeg')
+                        start=datetime.timedelta(seconds=1, microseconds=500000)),
+              TrackStub(metadata=TrackTags(title='My Second Track Title')
+                        start=datetime.timedelta(seconds=12, microseconds=300000)
+                        end=datetime.timedelta(seconds=2601))))

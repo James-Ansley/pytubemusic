@@ -1,0 +1,3 @@
+Url(href='www.example.com/pic1.jpeg')
+
+File(path=PosixPath('data/pic1.jpeg'))

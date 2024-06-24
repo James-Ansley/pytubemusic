@@ -1,0 +1,2 @@
+Split(url='www.example.com/watch?v='
+      tracks=(TrackStub(metadata=TrackTags(title='My Track Title')),))

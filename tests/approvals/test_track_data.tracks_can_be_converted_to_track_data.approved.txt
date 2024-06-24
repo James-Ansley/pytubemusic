@@ -1,0 +1,40 @@
+TrackData(metadata=Tags(title='My Track Title'),
+          cover=File(path=PosixPath('data/pic.jpeg')),
+          parts=[AudioData(url='www.example.com/watch?v=',
+                           start=datetime.timedelta(seconds=1, microseconds=500000),
+                           end=datetime.timedelta(seconds=201))])
+
+TrackData(metadata=Tags(title='My First Track Title'),
+          cover=Url(href='www.example.com/pic2.jpeg'),
+          parts=[AudioData(url='www.example.com/watch?v=',
+                           start=datetime.timedelta(seconds=1, microseconds=500000),
+                           end=datetime.timedelta(seconds=12, microseconds=300000))])
+
+TrackData(metadata=Tags(title='My Second Track Title'),
+          cover=Url(href='www.example.com/pic1.jpeg'),
+          parts=[AudioData(url='www.example.com/watch?v=',
+                           start=datetime.timedelta(seconds=12, microseconds=300000),
+                           end=datetime.timedelta(seconds=2601))])
+
+TrackData(metadata=Tags(title='My Track Title'),
+          cover=Url(href='www.example.com/pic2.jpeg'),
+          parts=[PlaylistAudioData(url='www.example.com/playlist?list=',
+                                   index=0,
+                                   start=datetime.timedelta(seconds=1, microseconds=500000),
+                                   end=datetime.timedelta(seconds=2601))])
+
+TrackData(metadata=Tags(title='My Other Track Title'),
+          cover=Url(href='www.example.com/pic1.jpeg'),
+          parts=[PlaylistAudioData(url='www.example.com/playlist?list=',
+                                   index=2,
+                                   start=None,
+                                   end=datetime.timedelta(seconds=2601))])
+
+TrackData(metadata=Tags(title='My Track Title'),
+          cover=Url(href='www.example.com/pic1.jpeg'),
+          parts=[AudioData(url='www.example1.com/watch?v=',
+                           start=None,
+                           end=None),
+                 AudioData(url='www.example2.com/watch?v=',
+                           start=datetime.timedelta(seconds=1, microseconds=500000),
+                           end=datetime.timedelta(seconds=2601))])

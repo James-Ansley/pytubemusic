@@ -1,0 +1,8 @@
+[metadata]
+album = "My Album Title"
+
+[[tracks]]
+url = "www.example.com/watch?v="
+
+[tracks.metadata]
+title = "My Track Title"

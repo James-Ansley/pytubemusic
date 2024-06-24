@@ -1,0 +1,7 @@
+MergePlaylist(url='www.example.com/playlist?list='
+              metadata=TrackTags(title='My Track Title')
+              tracks=(TimeStub(start=datetime.timedelta(seconds=1, microseconds=500000)
+                               end=datetime.timedelta(seconds=2601)),
+                      Drop(drop=True),
+                      TimeStub(start=datetime.timedelta(seconds=12, microseconds=300000)
+                               end=datetime.timedelta(seconds=601))))

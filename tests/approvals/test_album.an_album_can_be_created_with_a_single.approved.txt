@@ -1,0 +1,3 @@
+Album(metadata=AlbumTags(album='My Album Title')
+      tracks=(Single(url='www.example.com/watch?v='
+                     metadata=TrackTags(title='My Track Title')),))

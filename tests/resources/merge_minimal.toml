@@ -1,0 +1,5 @@
+[metadata]
+title = "My Track Title"
+
+[[parts]]
+url = "www.example.com/watch?v="
