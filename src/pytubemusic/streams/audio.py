@@ -3,7 +3,7 @@ from io import BytesIO
 from typing import IO
 
 from pydub import AudioSegment
-from pytube import Playlist, YouTube
+from pytubefix import Playlist, YouTube
 
 from pytubemusic.model.track import AudioData, PlaylistAudioData
 from .utils import stream

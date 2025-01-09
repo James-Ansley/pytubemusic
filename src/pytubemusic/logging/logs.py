@@ -1,8 +1,8 @@
 import functools
 import logging
 from collections.abc import Callable
-
 from enum import Enum
+from typing import Concatenate
 
 __all__ = (
     "LOGGER",
@@ -13,8 +13,6 @@ __all__ = (
     "setup_handler",
     "log",
 )
-
-from types import MappingProxyType
 
 LOGGER = logging.getLogger("pytubemusic")
 
@@ -31,9 +29,9 @@ class LogLevel(Enum):
 
 
 def setup_handler(
-        handler: logging.Handler,
-        level: int | LogLevel = logging.INFO,
-        logger: logging.Logger = LOGGER,
+      handler: logging.Handler,
+      level: int | LogLevel = logging.INFO,
+      logger: logging.Logger = LOGGER,
 ) -> None:
     if isinstance(level, LogLevel):
         level = level.value
@@ -46,9 +44,9 @@ def log(message, level: int = logging.INFO, logger: logging.Logger = LOGGER):
 
 
 def on_enter[**P, R](
-        msg: str | Callable[P, str],
-        level: int = logging.INFO,
-        logger: logging.Logger = LOGGER,
+      msg: str | Callable[P, str],
+      level: int = logging.INFO,
+      logger: logging.Logger = LOGGER,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Returns a decorator that logs function calls. Logs are emitted before
@@ -65,8 +63,10 @@ def on_enter[**P, R](
 
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            message = msg(*args, **kwargs) if isinstance(msg, Callable) else msg
-            logger.log(level, message)
+            if isinstance(msg, Callable):
+                logger.log(level, msg(*args, **kwargs))
+            else:
+                logger.log(level, msg)
             return func(*args, **kwargs)
 
         return wrapper
@@ -75,9 +75,9 @@ def on_enter[**P, R](
 
 
 def on_exit[**P, R](
-        msg: str | Callable[[R, P], str],
-        level: int = logging.INFO,
-        logger: logging.Logger = LOGGER,
+      msg: str | Callable[Concatenate[R, P], str],
+      level: int = logging.INFO,
+      logger: logging.Logger = LOGGER,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Returns a decorator that logs function calls. Logs are emitted as
@@ -95,8 +95,10 @@ def on_exit[**P, R](
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> R:
             result = func(*args, **kwargs)
-            message = msg(result, *args, **kwargs) if isinstance(msg, Callable) else msg
-            logger.log(level, message)
+            if isinstance(msg, Callable):
+                logger.log(level, msg(result, *args, **kwargs))
+            else:
+                logger.log(level, msg)
             return result
 
         return wrapper
@@ -104,11 +106,11 @@ def on_exit[**P, R](
     return decorator
 
 
-def on_error[**P, R, E: type[Exception]](
-        msg: str | Callable[[E, P], str],
-        level: int = logging.ERROR,
-        catch: E | tuple[E, ...] = Exception,
-        logger: logging.Logger = LOGGER,
+def on_error[**P, R, E: Exception](
+      msg: str | Callable[Concatenate[E, P], str],
+      level: int = logging.ERROR,
+      catch: type[E] | tuple[type[E], ...] = Exception,
+      logger: logging.Logger = LOGGER,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Returns a decorator that logs function calls. Logs are emitted as
@@ -125,12 +127,14 @@ def on_error[**P, R, E: type[Exception]](
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> R:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             try:
                 return func(*args, **kwargs)
             except catch as e:
-                message = msg(e, *args, **kwargs) if isinstance(msg, Callable) else msg
-                logger.log(level, message)
+                if isinstance(msg, Callable):
+                    logger.log(level, msg(e, *args, **kwargs))
+                else:
+                    logger.log(level, msg)
                 raise e
 
         return wrapper
