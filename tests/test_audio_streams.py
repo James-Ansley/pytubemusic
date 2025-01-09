@@ -59,8 +59,8 @@ class MockAudioSegment(AudioSegment):
 
 @pytest.fixture(autouse=True)
 def patch_youtube_and_audio(monkeypatch):
-    monkeypatch.setattr("pytube.YouTube", MockYoutube)
-    monkeypatch.setattr("pytube.Playlist", MockPlaylist)
+    monkeypatch.setattr("pytubefix.YouTube", MockYoutube)
+    monkeypatch.setattr("pytubefix.Playlist", MockPlaylist)
     monkeypatch.setattr("pydub.AudioSegment", MockAudioSegment)
     # Reload pytubemusic modules to re-import patched modules
     importlib.reload(pytubemusic.model.track)
