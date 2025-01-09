@@ -1,3 +1,7 @@
+from typing import Annotated
+
+from pydantic import BeforeValidator
+
 from pytubemusic.model.types import MaybeStr, MaybeInt
 from .base import Model
 
@@ -13,6 +17,10 @@ __all__ = (
 type MaybeTags = Tags | None
 type MaybeTrackTags = TrackTags | None
 type MaybeAlbumTags = AlbumTags | None
+
+
+def replace_slashes(field: str) -> str:
+    return field.replace("/", "\u2215")
 
 
 class Tags(Model):
@@ -42,8 +50,8 @@ class Tags(Model):
         "title_sort",
     )
 
-    title: MaybeStr = None
-    album: MaybeStr = None
+    title: Annotated[MaybeStr, BeforeValidator(replace_slashes)] = None
+    album: Annotated[MaybeStr, BeforeValidator(replace_slashes)] = None
     composer: MaybeStr = None
     genre: MaybeStr = None
     copyright: MaybeStr = None
@@ -73,11 +81,11 @@ class Tags(Model):
 
 class TrackTags(Tags):
     """FFMPEG track metadata tags"""
-    title: str
+    title: Annotated[str, BeforeValidator(replace_slashes)]
     album: MaybeStr = None
 
 
 class AlbumTags(Tags):
     """FFMPEG album metadata tags"""
-    album: str
+    album: Annotated[str, BeforeValidator(replace_slashes)]
     title: MaybeStr = None
