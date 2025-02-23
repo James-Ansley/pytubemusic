@@ -34,7 +34,7 @@ def audio(url: str) -> tuple[IO, int]:
 def _cached_audio_helper(url: str) -> tuple[bytes, int]:
     log(f"Fetching audio from: {url}")
     with stream(BytesIO()) as buffer:
-        raw_audio = YouTube(url).streams.get_audio_only()
+        raw_audio = YouTube(url, 'WEB').streams.get_audio_only()
         raw_audio.stream_to_buffer(buffer)
     return buffer.read(), raw_audio.bitrate
 
@@ -48,4 +48,4 @@ def fetch_video_url(audio_data: AudioData | PlaylistAudioData) -> str:
 
 
 def fetch_playlist_video_url(playlist_url: str, index: int) -> str:
-    return Playlist(playlist_url).video_urls[index]
+    return Playlist(playlist_url, 'WEB').video_urls[index]
